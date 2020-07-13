@@ -28,6 +28,12 @@ export default {
             },
             {
               content: 'Attentively check the file', done: false
+            },
+            {
+              content: 'Write HTML and CSS', done: false
+            },
+            {
+              content: 'Add Javascript to implement adding / editing / removing for todo items and lists taking into account as more use cases as possible', done: false
             }
           ]
         },

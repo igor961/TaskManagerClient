@@ -72,21 +72,56 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 50px;
+  min-height: 50px;
   box-sizing: border-box;
   padding: 10px;
 }
 
-.actions {
-  visibility: hidden;
-  flex-grow: 1;
+.stripe.bgchangeable:hover {
+  background: #fcfed5;
 }
 
-.actions:hover {
+.stripe .actions {
+  visibility: hidden;
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
+.stripe .actions>.action {
+  flex-grow: 1;
+  padding: 0 10px;
+}
+
+.stripe:hover .actions {
   visibility: visible;
 } 
 
 .s10px {
   width: 10px;
 }
+
+.stripe>.s5px.bordered {
+  border-right: 1px solid #efdadf;
+  border-left: 1px solid #efdadf;
+  align-self: stretch;
+  box-sizing: border-box;
+}
+
+.s5px {
+  width: 5px;
+}
+
+.s1px {
+  width: 1px;
+  background: #e7ebea;
+  align-self: stretch;
+}
+
+.s1px.dark {
+  background: #ccc;
+}
+
+
 </style>
