@@ -6,7 +6,10 @@
       <slot name="content"></slot>
     </div>
     <div class="s1px"></div>
-    <Actions :actions="actions" :itemIdx="idx" />
+    <Actions :actions="actions" 
+             :itemIdx="idx"
+             :itemPos="pos"
+             v-on="itemListeners" />
   </div>
 </template>
 
@@ -14,7 +17,11 @@
 import Actions from "@/components/Actions"
 
 export default {
-  props: ['idx'],
+  props: {
+    'idx': Number, 
+    'todos': Array, 
+    'pos': Number
+  },
   data () {
     return {
       actions: [{
@@ -28,13 +35,36 @@ export default {
         src: 'delete.svg',
         last: true
       }],
-      actionListeners: {}
+      itemListeners: {
+        'edit': this.updateItem, 
+        'delete': this.deleteItem, 
+        'changePriority': this.changePriority
+      },
     }
   },
   methods: {
     markDone () {
       this.$emit("done", this.idx)
-    }
+    },
+    updateItem (item) {
+      console.log("update Todo", item)
+      //TODO: update TodoItem
+    },
+    deleteItem (item) {
+      console.log("delete Todo", item)
+      const todos = [...this.todos]
+      todos.splice(item.itemPos, 1)
+      this.$emit('update:todos', todos)
+    },
+    changePriority (p) {
+      console.log("change priority", p)
+      if (p.itemPos===0) return
+      const todos = [...this.todos]
+      const tmp = todos[p.itemPos]
+      todos[p.itemPos] = todos[p.itemPos-1]
+      todos[p.itemPos-1] = tmp
+      this.$emit('update:todos', todos)
+    },
   },
   components: {
     Actions

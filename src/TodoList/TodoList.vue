@@ -3,15 +3,19 @@
     <header class="stripe">
       <img :src="ico" class="ico" alt="" />
       <div class="s10px"></div>
-      <div class="text">
+      <div class="text" style="padding: 0;">
         {{title}}
       </div>
-      <Actions :actions="actions" />
+      <Actions :actions="actions" v-on="listListeners" />
     </header>
     <article>
-      <AddSec/>
+      <AddSec @create="createItem" />
       <div class="view_sec">
-        <TodoListItem v-for="(v, i) in todos" :idx="i" :key="i">
+        <TodoListItem v-for="(v, i) in todos" 
+                      :todos.sync="todos" 
+                      :idx="v.key"
+                      :pos="parseInt(i)"
+                      :key="v.key"> 
           <template v-slot:content>
             {{v.content}}
           </template>
@@ -29,20 +33,43 @@ import headerIco from "@/assets/tasks.svg"
 
 export default {
   props: {
-    todos: Array,
+    todosProp: Array,
     title: String
+  },
+  methods: { 
+    createItem (item) {
+      console.log("create Todo", item)
+      //TODO: create TodoItem
+    }, 
+    createList (e) {
+      console.log("create TodoList", e)
+      //TODO: create TodoList
+    },
+    updateList (e) {
+      console.log("update TodoList", e)
+      //TODO: update TodoList
+    },
+    deleteList () {
+      console.log("delete TodoList")
+      //TODO: delete TodoList
+    },
   },
   data () {
     return {
+      todos: [...this.todosProp],
       ico: headerIco,
       actions: [{
         name: "edit",
-        src: 'edit.svg'
+        src: 'edit_h.svg'
       }, {
         name: "delete",
-        src: 'delete.svg',
+        src: 'delete_h.svg',
         last: true
-      }]
+      }],    
+      listListeners: {
+        'edit': this.updateList, 
+        'delete': this.deleteList
+      }
     }
   },
   components: {AddSec, TodoListItem, Actions}
@@ -125,12 +152,13 @@ export default {
 
 .s1px {
   width: 1px;
+  margin: 3px 0;
   background: #e7ebea;
   align-self: stretch;
 }
 
-.s1px.dark {
-  background: #ccc;
+header .s1px {
+  background: #5284bf;
 }
 
 

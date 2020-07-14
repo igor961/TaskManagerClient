@@ -2,7 +2,7 @@
   <div class="actions">
     <template  v-for="(a, i) in actions">
       <div class="action" :key="'a'+i">
-        <img :src="require('@/assets/'+a.src)" @click="$emit(a.name, itemIdx)" alt="">
+        <img :src="require('@/assets/'+a.src)" @click="$emit(a.name, {itemIdx, itemPos})" alt="">
       </div>
       <div class="s1px" :key="'b'+i" v-if="!a.last"></div>
     </template>
@@ -14,7 +14,8 @@
 export default {
   props: {
     actions: Array,
-    itemIdx: Number
+    itemIdx: Number,
+    itemPos: Number
   }
 }
 </script>
@@ -26,9 +27,5 @@ export default {
 
   .action>img:hover {
     opacity: 1;
-  }
-
-  .s1px {
-    background: #ccc;
   }
 </style>

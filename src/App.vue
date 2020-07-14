@@ -5,7 +5,9 @@
         <h1>SIMPLE TODO LISTS</h1>
         <h3>FROM RUBY GARAGE</h3>
       </header>
-      <TodoList v-for="(todoList, i) in todoLists" :todos="todoList.todos" :title="todoList.title" :key="i" />
+      <section class="todo_lists">
+        <TodoList v-for="todoList in todoLists" :todosProp="todoList.todos" :title="todoList.title" :key="todoList.key" />
+      </section>
       <footer>
         &copy; Ruby Garage
       </footer>
@@ -21,27 +23,45 @@ export default {
     return {
       todoLists: [
         {
+          key: 1,
           title: "Complete the test task for Ruby Garage",
           todos: [
             {
-              content: 'Open this mock-up in Adobe Fireworks', done: false
+              key: 1, content: 'Open this mock-up in Adobe Fireworks', done: false
             },
             {
+              key:2, 
               content: 'Attentively check the file', done: false
             },
             {
+              key: 3,
               content: 'Write HTML and CSS', done: false
             },
             {
+              key: 4,
               content: 'Add Javascript to implement adding / editing / removing for todo items and lists taking into account as more use cases as possible', done: false
             }
           ]
         },
         {
+          key: 2,
           title: "For Home",
           todos: [
             {
+              key: 1,
               content: 'Buy a milk', done: true
+            },
+            {
+              key: 2,
+              content: 'Call Mam', done: true
+            },
+            {
+              key: 3,
+              content: 'Clean the room', done: true
+            },
+            {
+              key: 4,
+              content: 'Repair the DVD player', done: true
             }
           ]
         }
