@@ -6,23 +6,38 @@
       <slot name="content"></slot>
     </div>
     <div class="s1px"></div>
-    <div class="actions">
-      <div class="action">A</div>
-      <div class="s1px"></div>
-      <div class="action">B</div>
-      <div class="s1px"></div>
-      <div class="action">C</div>
-    </div>
+    <Actions :actions="actions" :itemIdx="idx" />
   </div>
 </template>
 
 <script>
+import Actions from "@/components/Actions"
+
 export default {
   props: ['idx'],
+  data () {
+    return {
+      actions: [{
+        name: 'changePriority',
+        src: 'ch_p.svg'
+      }, {
+        name: "edit",
+        src: 'edit.svg'
+      }, {
+        name: "delete",
+        src: 'delete.svg',
+        last: true
+      }],
+      actionListeners: {}
+    }
+  },
   methods: {
     markDone () {
       this.$emit("done", this.idx)
     }
+  },
+  components: {
+    Actions
   }
 }
 </script>
@@ -42,7 +57,7 @@ export default {
   margin: 14px;
 }
 
-.list_item>.text {
+.stripe>.text {
   flex-grow: 4;
   flex-basis: 60%;
   padding: 15px;

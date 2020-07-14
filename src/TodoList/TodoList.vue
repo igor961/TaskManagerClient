@@ -3,10 +3,10 @@
     <header class="stripe">
       <img :src="ico" class="ico" alt="" />
       <div class="s10px"></div>
-      <span>
+      <div class="text">
         {{title}}
-      </span>
-      <div class="actions"></div>
+      </div>
+      <Actions :actions="actions" />
     </header>
     <article>
       <AddSec/>
@@ -24,6 +24,7 @@
 <script>
 import AddSec from "./AddSec"
 import TodoListItem from "./TodoListItem"
+import Actions from "@/components/Actions"
 import headerIco from "@/assets/tasks.svg"
 
 export default {
@@ -33,10 +34,18 @@ export default {
   },
   data () {
     return {
-      ico: headerIco
+      ico: headerIco,
+      actions: [{
+        name: "edit",
+        src: 'edit.svg'
+      }, {
+        name: "delete",
+        src: 'delete.svg',
+        last: true
+      }]
     }
   },
-  components: {AddSec, TodoListItem}
+  components: {AddSec, TodoListItem, Actions}
 }
 </script>
 
@@ -64,10 +73,6 @@ export default {
   opacity: 0.4;
 }
 
-.todo_list>header>.text {
-  flex-grow: 4;
-}
-
 .stripe {
   display: flex;
   justify-content: space-between;
@@ -79,6 +84,7 @@ export default {
 
 .stripe.bgchangeable:hover {
   background: #fcfed5;
+
 }
 
 .stripe .actions {
@@ -96,6 +102,10 @@ export default {
 
 .stripe:hover .actions {
   visibility: visible;
+}
+
+.stripe:hover:last-child {
+  border-radius: 0 0 20px 20px;
 } 
 
 .s10px {
