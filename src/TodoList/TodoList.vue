@@ -37,9 +37,9 @@ export default {
     title: String
   },
   methods: { 
-    createItem (item) {
-      console.log("create Todo", item)
-      //TODO: create TodoItem
+    createItem (content) {
+      console.log("create Todo", content)
+      this.$set(this.todos, this.todos.length, {content})
     }, 
     createList (e) {
       console.log("create TodoList", e)

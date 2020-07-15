@@ -2,7 +2,10 @@
   <div class="stripe bgchangeable list_item">
     <input type="checkbox" @click="markDone" />
     <div class="s5px bordered"></div>
-    <div class="text">
+    <div class="text" 
+         @keydown.enter.prevent="newText=$event.target.innerText"
+         @keyup.enter="mutateTodos(null, updateItem)"
+         :contenteditable="editingState">
       <slot name="content"></slot>
     </div>
     <div class="s1px"></div>
@@ -24,6 +27,8 @@ export default {
   },
   data () {
     return {
+      newText: "",
+      editingState: false,
       actions: [{
         name: 'changePriority',
         src: 'ch_p.svg'
@@ -35,36 +40,50 @@ export default {
         src: 'delete.svg',
         last: true
       }],
-      itemListeners: {
-        'edit': this.updateItem, 
+      itemListeners: this.getItemListeners({
+        'edit': this.editItem, 
         'delete': this.deleteItem, 
         'changePriority': this.changePriority
-      },
+      })
     }
   },
   methods: {
     markDone () {
       this.$emit("done", this.idx)
     },
-    updateItem (item) {
-      console.log("update Todo", item)
-      //TODO: update TodoItem
+    editItem (item) {
+      console.log("edit Todo", item)
+      this.editingState = true
     },
-    deleteItem (item) {
+    updateItem(pld, todos) {
+      console.log("update Todo", this.newText)
+      this.editingState = false
+      todos[this.pos].content = this.newText
+    },
+    deleteItem (item, todos) {
       console.log("delete Todo", item)
-      const todos = [...this.todos]
       todos.splice(item.itemPos, 1)
-      this.$emit('update:todos', todos)
     },
-    changePriority (p) {
+    changePriority (p, todos) {
       console.log("change priority", p)
       if (p.itemPos===0) return
-      const todos = [...this.todos]
       const tmp = todos[p.itemPos]
       todos[p.itemPos] = todos[p.itemPos-1]
       todos[p.itemPos-1] = tmp
+    },
+    mutateTodos (payload, cb) {
+      const todos = [...this.todos]
+      cb(payload, todos)
       this.$emit('update:todos', todos)
     },
+    getItemListeners (aux) {
+      const res = {}
+      for (const key in aux) {
+        if (Object.prototype.hasOwnProperty.call(aux, key))
+          res[key] = pld => this.mutateTodos(pld, aux[key])
+      }
+      return res
+    }
   },
   components: {
     Actions
