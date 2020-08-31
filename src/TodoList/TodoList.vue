@@ -3,19 +3,28 @@
     <header class="stripe">
       <img :src="ico" class="ico" alt="" />
       <div class="s10px"></div>
-      <div class="text" style="padding: 0;">
+      <div class="text" 
+           style="padding: 0;" 
+           :contenteditable="editingTitle"
+           @keydown.enter.prevent="newTitle=$event.target.innerText"
+           @keyup.enter="updateTitle">
         {{title}}
       </div>
-      <Actions :actions="actions" v-on="listListeners" />
+      <Actions :actions="actions" 
+               @edit="editTitle" 
+               @delete="$emit('delete', pos)" />
     </header>
     <article>
       <AddSec @create="createItem" />
       <div class="view_sec">
         <TodoListItem v-for="(v, i) in todos" 
-                      :todos.sync="todos" 
+                      :todos.sync="todos"
+                      @update:todo="updateProjects"
+                      @delete:todo="deleteItem"
                       :idx="v.id"
                       :pos="parseInt(i)"
-                      :key="v.id"> 
+                      :key="v.id"
+                      :done="v.status">
           <template v-slot:content>
             {{v.name}}
           </template>
@@ -33,30 +42,60 @@ import headerIco from "@/assets/tasks.svg"
 
 export default {
   props: {
-    todosProp: Array,
-    title: String
+    todosProp: Object,
+    title: String,
+    id: Number,
+    pos: Number
   },
-  methods: { 
+  methods: {
     createItem (content) {
       console.log("create Todo", content)
-      this.$set(this.todos, this.todos.length, {content})
-    }, 
-    createList (e) {
-      console.log("create TodoList", e)
-      //TODO: create TodoList
+      this.$set(this.todos, this.todos.length, {id: -1, name: content})
+      this.$wsClient.publish({
+        destination: '/app/task/create',
+        body: JSON.stringify({
+          projectId: this.id,
+          name: content
+        })
+      })
     },
-    updateList (e) {
-      console.log("update TodoList", e)
-      //TODO: update TodoList
+    updateTitle () {
+      this.editingTitle = false
+      if (this.newTitle === "") return;
+      this.$wsClient.publish({
+        destination: '/app/project/update',
+        body: JSON.stringify({
+          name: this.newTitle,
+          id: this.id
+        })
+      })
     },
-    deleteList () {
-      console.log("delete TodoList")
-      //TODO: delete TodoList
+    editTitle () {
+      this.editingTitle = true
     },
+    updateProjects (todo) {
+      this.$emit('update:projects', {
+        pos: this.pos,
+        todo
+      })
+    },
+    deleteItem (idx) {
+      this.$emit('delete:todo', {
+        pos: this.pos,
+        idx 
+      })
+    }
+  },
+  watch: {
+    todosProp () {
+      this.todos = Object.values(this.todosProp)
+    }
   },
   data () {
     return {
-      todos: [...this.todosProp],
+      newTitle: "",
+      editingTitle: false,
+      todos: Object.values(this.todosProp),
       ico: headerIco,
       actions: [{
         name: "edit",
@@ -65,11 +104,7 @@ export default {
         name: "delete",
         src: 'delete_h.svg',
         last: true
-      }],    
-      listListeners: {
-        'edit': this.updateList, 
-        'delete': this.deleteList
-      }
+      }] 
     }
   },
   components: {AddSec, TodoListItem, Actions}

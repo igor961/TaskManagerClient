@@ -6,8 +6,21 @@
         <h3>FROM RUBY GARAGE</h3>
       </header>
       <section class="todo_lists" v-if="projects.length > 0">
-        <TodoList v-for="todoList in projects" :todosProp="todoList.tasks" :title="todoList.name" :key="todoList.id" />
+        <TodoList v-for="(todoList, i) in projects" 
+                  v-bind="{
+                    todosProp: todoList.tasks, 
+                    title: todoList.name,
+                    id: todoList.id 
+                  }"
+                  :key="todoList.id"
+                  :pos="i"
+                  @delete="deleteList"
+                  @delete:todo="deleteItem"
+                  @update:projects="updateProjects" />
       </section>
+
+      <button>Add TODO List</button>
+
       <footer>
         &copy; Ruby Garage
       </footer>
@@ -20,64 +33,46 @@ import TodoList from "./TodoList/TodoList"
 
 export default {
   methods: {
-    onConnect () {
-      this.$wsClient.publish({
-        destination: '/app/all'
-      })
+    onConnect () { 
       this.$wsClient.subscribe('/user/queue/projects-with-tasks', (data) => {
         console.log(data.body)
         this.projects = JSON.parse(data.body)
+        const ids = new Map();
+        this.projects.forEach((p, i) => ids.set(p.id, i))
+        this.ids = ids
       })
+      this.$wsClient.publish({
+        destination: '/app/all'
+      })
+
+      this.$wsClient.subscribe('/user/queue/task', res => {
+        const task = JSON.parse(res.body)
+        this.updateProjects({pos: this.ids.get(task.projectId), todo: task})
+        //this.$set(this.projects[this.ids.get(task.projectId)].tasks, String(task.id), task)
+      })
+    },
+    deleteList (pos) {
+      const id = this.projects[pos].id
+      this.$wsClient.publish({
+        destination: '/app/project/delete/' + id
+      })
+      this.$delete(this.projects, pos)
+    },
+    createList (e) {
+      console.log("create TodoList", e)
+      //TODO: create TodoList
+    },
+    updateProjects ({pos, todo}) {
+      this.$set(this.projects[pos].tasks, String(todo.id), todo)
+    },
+    deleteItem ({pos, idx}) {
+      this.$delete(this.projects[pos].tasks, String(idx))
     }
   },
   data () {
     return {
       projects: [],
-      todoLists: [
-        {
-          key: 1,
-          title: "Complete the test task for Ruby Garage",
-          todos: [
-            {
-              key: 1, content: 'Open this mock-up in Adobe Fireworks', done: false
-            },
-            {
-              key:2, 
-              content: 'Attentively check the file', done: false
-            },
-            {
-              key: 3,
-              content: 'Write HTML and CSS', done: false
-            },
-            {
-              key: 4,
-              content: 'Add Javascript to implement adding / editing / removing for todo items and lists taking into account as more use cases as possible', done: false
-            }
-          ]
-        },
-        {
-          key: 2,
-          title: "For Home",
-          todos: [
-            {
-              key: 1,
-              content: 'Buy a milk', done: true
-            },
-            {
-              key: 2,
-              content: 'Call Mam', done: true
-            },
-            {
-              key: 3,
-              content: 'Clean the room', done: true
-            },
-            {
-              key: 4,
-              content: 'Repair the DVD player', done: true
-            }
-          ]
-        }
-      ]
+      ids: null
     }
   },
   components: {TodoList}

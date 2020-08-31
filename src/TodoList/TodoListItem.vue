@@ -1,18 +1,20 @@
 <template>
   <div class="stripe bgchangeable list_item">
-    <input type="checkbox" @click="markDone" />
+    <input type="checkbox" @change="markDone" :checked="done" />
     <div class="s5px bordered"></div>
     <div class="text" 
          @keydown.enter.prevent="newText=$event.target.innerText"
-         @keyup.enter="mutateTodos(null, updateItem)"
+         @keyup.enter="updateItem"
          :contenteditable="editingState">
       <slot name="content"></slot>
     </div>
     <div class="s1px"></div>
-    <Actions :actions="actions" 
-             :itemIdx="idx"
-             :itemPos="pos"
-             v-on="itemListeners" />
+    <Actions :actions="actions"
+             v-on="{
+                      delete: this.deleteItem, 
+                      changePriority: this.changePriority,
+                      edit: this.editItem
+                    }" />
   </div>
 </template>
 
@@ -23,7 +25,8 @@ export default {
   props: {
     'idx': Number, 
     'todos': Array, 
-    'pos': Number
+    'pos': Number,
+    'done': Boolean
   },
   data () {
     return {
@@ -40,49 +43,53 @@ export default {
         src: 'delete.svg',
         last: true
       }],
-      itemListeners: this.getItemListeners({
-        'edit': this.editItem, 
-        'delete': this.deleteItem, 
-        'changePriority': this.changePriority
-      })
     }
   },
   methods: {
-    markDone () {
-      this.$emit("done", this.idx)
+    onConnect() {
+
     },
-    editItem (item) {
-      console.log("edit Todo", item)
+    markDone () {
+      const status = !this.done
+      console.log("change status (done)", status)
+      const newTodo = Object.assign({}, this.todos[this.pos])
+      newTodo.status = status
+      this.$emit('update:todo', newTodo)
+      this.$wsClient.publish({
+        destination: '/app/task/update',
+        body: JSON.stringify(newTodo)
+      })
+    },
+    editItem () {
+      console.log("edit Todo")
       this.editingState = true
     },
-    updateItem(pld, todos) {
+    updateItem () {
       console.log("update Todo", this.newText)
       this.editingState = false
-      todos[this.pos].content = this.newText
+      const newTodo = Object.assign({}, this.todos[this.pos])
+      newTodo.name = this.newText
+      this.$wsClient.publish({
+        destination: '/app/task/update',
+        body: JSON.stringify(newTodo)
+      });
+      this.$emit('update:todo', newTodo)
     },
-    deleteItem (item, todos) {
-      console.log("delete Todo", item)
-      todos.splice(item.itemPos, 1)
+    deleteItem () {
+      console.log("delete Todo", this.pos)
+      this.$wsClient.publish({
+        destination: '/app/task/delete/' + this.idx
+      });
+      this.$emit('delete:todo', this.idx)
     },
-    changePriority (p, todos) {
-      console.log("change priority", p)
-      if (p.itemPos===0) return
-      const tmp = todos[p.itemPos]
-      todos[p.itemPos] = todos[p.itemPos-1]
-      todos[p.itemPos-1] = tmp
-    },
-    mutateTodos (payload, cb) {
-      const todos = [...this.todos]
-      cb(payload, todos)
-      this.$emit('update:todos', todos)
-    },
-    getItemListeners (aux) {
-      const res = {}
-      for (const key in aux) {
-        if (Object.prototype.hasOwnProperty.call(aux, key))
-          res[key] = pld => this.mutateTodos(pld, aux[key])
-      }
-      return res
+    changePriority () {
+      console.log("change priority", this.pos)
+      /*if (this.pos===0) return
+      const tmp = todos[this.pos]
+      todos[this.pos] = todos[this.pos-1]
+      todos[this.pos-1] = tmp
+       */
+      // TODO: implement
     }
   },
   components: {
