@@ -13,11 +13,11 @@
       <div class="view_sec">
         <TodoListItem v-for="(v, i) in todos" 
                       :todos.sync="todos" 
-                      :idx="v.key"
+                      :idx="v.id"
                       :pos="parseInt(i)"
-                      :key="v.key"> 
+                      :key="v.id"> 
           <template v-slot:content>
-            {{v.content}}
+            {{v.name}}
           </template>
         </TodoListItem>
       </div>

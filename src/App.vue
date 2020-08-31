@@ -5,8 +5,8 @@
         <h1>SIMPLE TODO LISTS</h1>
         <h3>FROM RUBY GARAGE</h3>
       </header>
-      <section class="todo_lists">
-        <TodoList v-for="todoList in todoLists" :todosProp="todoList.todos" :title="todoList.title" :key="todoList.key" />
+      <section class="todo_lists" v-if="projects.length > 0">
+        <TodoList v-for="todoList in projects" :todosProp="todoList.tasks" :title="todoList.name" :key="todoList.id" />
       </section>
       <footer>
         &copy; Ruby Garage
@@ -19,8 +19,20 @@
 import TodoList from "./TodoList/TodoList"
 
 export default {
+  methods: {
+    onConnect () {
+      this.$wsClient.publish({
+        destination: '/app/all'
+      })
+      this.$wsClient.subscribe('/user/queue/projects-with-tasks', (data) => {
+        console.log(data.body)
+        this.projects = JSON.parse(data.body)
+      })
+    }
+  },
   data () {
     return {
+      projects: [],
       todoLists: [
         {
           key: 1,
