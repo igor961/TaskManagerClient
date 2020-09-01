@@ -2,7 +2,7 @@
   <div class="stripe add_sec">
     <img :src="img" class="ico" alt="" />
     <div class="s10px"></div>
-    <form @submit.prevent="$emit('add', newTaskContent)">
+    <form @submit.prevent="$emit('create', newTaskContent)">
       <input type="text" placeholder="Start typing here to create a task" v-model="newTaskContent" />
       <button type="submit">Add Task</button>
     </form>

@@ -1,19 +1,30 @@
 <template>
   <section class="todo_list">
-    <header class="stripe">
+    <header class="stripe blue_elem">
       <img :src="ico" class="ico" alt="" />
       <div class="s10px"></div>
-      <div class="text">
+      <div class="text" 
+           style="padding: 0;" 
+           :contenteditable="editingTitle"
+           @keydown.enter.prevent="newTitle=$event.target.innerText"
+           @keyup.enter="updateTitle">
         {{title}}
       </div>
-      <Actions :actions="actions" />
+      <Actions :actions="actions" 
+               @edit="editTitle" 
+               @delete="$emit('delete', id)" />
     </header>
     <article>
-      <AddSec/>
+      <AddSec @create="createItem" />
       <div class="view_sec">
-        <TodoListItem v-for="(v, i) in todos" :idx="i" :key="i">
+        <TodoListItem v-for="(v, i) in projects[pos].tasks" 
+                      @update:todo="updateItem"
+                      @delete:todo="deleteItem"
+                      :todo="v"
+                      :pos="parseInt(i)"
+                      :key="v.id">
           <template v-slot:content>
-            {{v.content}}
+            {{v.name}}
           </template>
         </TodoListItem>
       </div>
@@ -29,20 +40,64 @@ import headerIco from "@/assets/tasks.svg"
 
 export default {
   props: {
-    todos: Array,
-    title: String
+    projects: Array,
+    todosProp: Object,
+    title: String,
+    id: Number,
+    pos: Number
+  },
+  methods: {
+    createItem (content) {
+      console.log("create Todo", content)
+      //this.$set(this.todos, this.todos.length, {id: -1, name: content})
+      this.$wsClient.publish({
+        destination: '/app/task/create',
+        body: JSON.stringify({
+          projectId: this.id,
+          name: content
+        })
+      })
+    },
+    updateTitle () {
+      this.editingTitle = false
+      if (this.newTitle === "") return;
+      this.$wsClient.publish({
+        destination: '/app/project/update',
+        body: JSON.stringify({
+          name: this.newTitle,
+          id: this.id
+        })
+      })
+    },
+    editTitle () {
+      this.editingTitle = true
+    },
+    updateItem (todo) {
+      this.$emit('update:todo', {
+        id: this.id,
+        todo
+      })
+    },
+    deleteItem (idx) {
+      this.$emit('delete:todo', {
+        projId: this.id,
+        taskId: idx
+      })
+    }
   },
   data () {
     return {
+      newTitle: "",
+      editingTitle: false,
       ico: headerIco,
       actions: [{
         name: "edit",
-        src: 'edit.svg'
+        src: 'edit_h.svg'
       }, {
         name: "delete",
-        src: 'delete.svg',
+        src: 'delete_h.svg',
         last: true
-      }]
+      }] 
     }
   },
   components: {AddSec, TodoListItem, Actions}
@@ -56,17 +111,11 @@ export default {
 
 .todo_list {
   width: 1000px;
-  margin: 50px 10px;
+  margin-bottom: 50px;
   background: white;
   border-radius: 0 0 20px 20px;
   border: 1px solid #a8a8a8;
-}
-
-.todo_list>header {
-  background: linear-gradient(#5282c0, #3963a0);
-  color: white;
-  font-size: 1.2em;
-  text-align: left;
+  cursor: pointer;
 }
 
 .todo_list>header>.ico {
@@ -125,12 +174,13 @@ export default {
 
 .s1px {
   width: 1px;
+  margin: 3px 0;
   background: #e7ebea;
   align-self: stretch;
 }
 
-.s1px.dark {
-  background: #ccc;
+header .s1px {
+  background: #5284bf;
 }
 
 

@@ -5,47 +5,127 @@
         <h1>SIMPLE TODO LISTS</h1>
         <h3>FROM RUBY GARAGE</h3>
       </header>
-      <TodoList v-for="(todoList, i) in todoLists" :todos="todoList.todos" :title="todoList.title" :key="i" />
+      <section class="todo_lists" v-if="projects && !addingList">
+        <TodoList v-for="(todoList, i) in projectsArr" 
+                  v-bind="{
+                    todosProp: todoList.tasks, 
+                    title: todoList.name,
+                    id: todoList.id,
+                    pos: i,
+                    projects: projectsArr
+                  }"
+                  :key="todoList.id"
+                  @delete="deleteList"
+                  @delete:todo="deleteItem"
+                  @update:todo="updateItem" />
+      </section>
+      <form @submit.prevent="createList" class="addingListForm" v-show="addingList">
+        <label>
+          Project's name
+          <input type="text" v-model="newProject.name">
+        </label>
+        <label>
+          Task's name
+          <input type="text" v-model="newProject.firstTaskName">
+        </label>
+        <div class="form-group">
+          <button type="submit">Create</button>
+          <button @click="addingList=false" class="cancel">Cancel</button>
+        </div>
+      </form>
+
+      <button @click="addingList=true" class="stripe blue_elem" v-show="!addingList">
+        <img class="ico" :src="btnIco" alt="">
+        <div class="text">Add TODO List</div>
+      </button>
+
       <footer>
         &copy; Ruby Garage
       </footer>
-    </main>
+    </main> 
   </div>
 </template>
 
 <script>
 import TodoList from "./TodoList/TodoList"
+import btnIco from "@/assets/plus_btn.svg"
+import Projects from "@/utils/projects"
 
 export default {
+  methods: {
+    onConnect () { 
+      this.$wsClient.subscribe('/user/queue/projects-with-tasks', (data) => {
+        console.log(data.body)
+        this.projects = new Projects(JSON.parse(data.body), this.notifyProjects)
+      })
+      this.$wsClient.publish({
+        destination: '/app/all'
+      })
+
+      this.$wsClient.subscribe('/user/queue/task', res => {
+        const task = JSON.parse(res.body)
+        this.projects.createTask(task.projectId, task)
+      })
+
+      //Subscribe on 'new project created' event
+      this.$wsClient.subscribe('/user/queue/project', res => {
+        const project = JSON.parse(res.body)
+        const task = {
+          name: this.newProject.firstTaskName,
+          projectId: project.id
+        }
+
+        this.projects.create(project)
+
+        this.$wsClient.publish({
+          destination: '/app/task/create',
+          body: JSON.stringify(task)
+        })
+      })
+    },
+    deleteList (projId) {
+      this.projects.delete(projId)
+      this.$wsClient.publish({
+        destination: '/app/project/delete/' + projId
+      })
+    },
+    updateItem ({id, todo}) {
+      console.log("UpdateItem", id, todo)
+      this.projects.updateTask(id, todo)
+    },
+    deleteItem ({projId, taskId}) {
+      this.projects.deleteTask(projId, taskId)  
+    },
+    createList () {
+      console.log("create TodoList")
+      const newProj = {
+        name: this.newProject.name
+      }
+      this.$wsClient.publish({
+        destination: '/app/project/create',
+        body: JSON.stringify(newProj)
+      })
+      this.addingList = false
+    },
+    notifyProjects () {
+      this.$set(this, 'projectsArr', this.projects.getAll())
+    }
+  },
+  watch: {
+    projects () {
+      console.log("Watching projects")
+      this.projectsArr = this.projects.getAll()
+    }
+  },
   data () {
     return {
-      todoLists: [
-        {
-          title: "Complete the test task for Ruby Garage",
-          todos: [
-            {
-              content: 'Open this mock-up in Adobe Fireworks', done: false
-            },
-            {
-              content: 'Attentively check the file', done: false
-            },
-            {
-              content: 'Write HTML and CSS', done: false
-            },
-            {
-              content: 'Add Javascript to implement adding / editing / removing for todo items and lists taking into account as more use cases as possible', done: false
-            }
-          ]
-        },
-        {
-          title: "For Home",
-          todos: [
-            {
-              content: 'Buy a milk', done: true
-            }
-          ]
-        }
-      ]
+      projects: null,
+      projectsArr: null,
+      addingList: false,
+      newProject: {
+        todos: null
+      },
+      btnIco
     }
   },
   components: {TodoList}
@@ -63,9 +143,7 @@ main.container {
   margin: auto;
   flex-direction: column;
   align-items: center;
-  justify-content: space-around;
   background: linear-gradient(#d9d5c1, #c0c6b8, #d4b756, #c8750d);
-  padding: 10px;
   position: absolute;
   top: 0;
   right: 0;
@@ -76,8 +154,36 @@ main.container {
 }
 
 .container>header {
-  margin: 6vh 0;
+  margin: 50px;
   text-align: center;
+}
+
+footer {
+  color: white;
+  padding: 30px;
+}
+
+.blue_elem {
+  background: linear-gradient(#5186c0, #335ba1);
+  color: white;
+  font-size: 1.2em;
+  text-align: left;
+  border: 1px solid #315589;
+}
+
+button {
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.addingListForm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.addingListForm>* {
+  margin: 10px;
 }
 
 </style>
