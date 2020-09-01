@@ -1,6 +1,6 @@
 <template>
   <section class="todo_list">
-    <header class="stripe">
+    <header class="stripe blue_elem">
       <img :src="ico" class="ico" alt="" />
       <div class="s10px"></div>
       <div class="text" 
@@ -118,17 +118,10 @@ export default {
 
 .todo_list {
   width: 1000px;
-  margin: 50px 10px;
+  margin-bottom: 50px;
   background: white;
   border-radius: 0 0 20px 20px;
   border: 1px solid #a8a8a8;
-}
-
-.todo_list>header {
-  background: linear-gradient(#5282c0, #3963a0);
-  color: white;
-  font-size: 1.2em;
-  text-align: left;
 }
 
 .todo_list>header>.ico {

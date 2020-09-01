@@ -19,7 +19,7 @@
                   @update:projects="updateProjects" />
       </section>
 
-      <button>Add TODO List</button>
+      <button class="stripe blue_elem"><img class="ico" :src="btnIco" alt=""><div class="text">Add TODO List</div></button>
 
       <footer>
         &copy; Ruby Garage
@@ -30,6 +30,8 @@
 
 <script>
 import TodoList from "./TodoList/TodoList"
+import btnIco from "@/assets/plus_btn.svg"
+
 
 export default {
   methods: {
@@ -72,7 +74,8 @@ export default {
   data () {
     return {
       projects: [],
-      ids: null
+      ids: null,
+      btnIco
     }
   },
   components: {TodoList}
@@ -90,9 +93,7 @@ main.container {
   margin: auto;
   flex-direction: column;
   align-items: center;
-  justify-content: space-around;
   background: linear-gradient(#d9d5c1, #c0c6b8, #d4b756, #c8750d);
-  padding: 10px;
   position: absolute;
   top: 0;
   right: 0;
@@ -103,8 +104,25 @@ main.container {
 }
 
 .container>header {
-  margin: 6vh 0;
+  margin: 50px;
   text-align: center;
+}
+
+footer {
+  color: white;
+  padding: 30px;
+}
+
+.blue_elem {
+  background: linear-gradient(#5186c0, #335ba1);
+  color: white;
+  font-size: 1.2em;
+  text-align: left;
+  border: 1px solid #315589;
+}
+
+button.stripe {
+  border-radius: 2px;
 }
 
 </style>
