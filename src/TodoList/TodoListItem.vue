@@ -1,6 +1,6 @@
 <template>
   <div class="stripe bgchangeable list_item">
-    <input type="checkbox" @change="markDone" :checked="done" />
+    <input type="checkbox" @change="markDone" :checked="todo.done" />
     <div class="s5px bordered"></div>
     <div class="text" 
          @keydown.enter.prevent="newText=$event.target.innerText"
@@ -23,10 +23,8 @@ import Actions from "@/components/Actions"
 
 export default {
   props: {
-    'idx': Number, 
-    'todos': Array, 
+    'todo': Object,
     'pos': Number,
-    'done': Boolean
   },
   data () {
     return {
@@ -50,9 +48,9 @@ export default {
 
     },
     markDone () {
-      const status = !this.done
+      const status = !this.todo.done
       console.log("change status (done)", status)
-      const newTodo = Object.assign({}, this.todos[this.pos])
+      const newTodo = {...this.todo}
       newTodo.status = status
       this.$emit('update:todo', newTodo)
       this.$wsClient.publish({
@@ -67,7 +65,7 @@ export default {
     updateItem () {
       console.log("update Todo", this.newText)
       this.editingState = false
-      const newTodo = Object.assign({}, this.todos[this.pos])
+      const newTodo = {...this.todo}
       newTodo.name = this.newText
       this.$wsClient.publish({
         destination: '/app/task/update',
@@ -78,9 +76,9 @@ export default {
     deleteItem () {
       console.log("delete Todo", this.pos)
       this.$wsClient.publish({
-        destination: '/app/task/delete/' + this.idx
+        destination: '/app/task/delete/' + this.todo.id
       });
-      this.$emit('delete:todo', this.idx)
+      this.$emit('delete:todo', this.todo.id)
     },
     changePriority () {
       console.log("change priority", this.pos)

@@ -12,19 +12,17 @@
       </div>
       <Actions :actions="actions" 
                @edit="editTitle" 
-               @delete="$emit('delete', pos)" />
+               @delete="$emit('delete', id)" />
     </header>
     <article>
       <AddSec @create="createItem" />
       <div class="view_sec">
-        <TodoListItem v-for="(v, i) in todos" 
-                      :todos.sync="todos"
-                      @update:todo="updateProjects"
+        <TodoListItem v-for="(v, i) in projects[pos].tasks" 
+                      @update:todo="updateItem"
                       @delete:todo="deleteItem"
-                      :idx="v.id"
+                      :todo="v"
                       :pos="parseInt(i)"
-                      :key="v.id"
-                      :done="v.status">
+                      :key="v.id">
           <template v-slot:content>
             {{v.name}}
           </template>
@@ -42,6 +40,7 @@ import headerIco from "@/assets/tasks.svg"
 
 export default {
   props: {
+    projects: Array,
     todosProp: Object,
     title: String,
     id: Number,
@@ -50,7 +49,7 @@ export default {
   methods: {
     createItem (content) {
       console.log("create Todo", content)
-      this.$set(this.todos, this.todos.length, {id: -1, name: content})
+      //this.$set(this.todos, this.todos.length, {id: -1, name: content})
       this.$wsClient.publish({
         destination: '/app/task/create',
         body: JSON.stringify({
@@ -73,29 +72,23 @@ export default {
     editTitle () {
       this.editingTitle = true
     },
-    updateProjects (todo) {
-      this.$emit('update:projects', {
-        pos: this.pos,
+    updateItem (todo) {
+      this.$emit('update:todo', {
+        id: this.id,
         todo
       })
     },
     deleteItem (idx) {
       this.$emit('delete:todo', {
-        pos: this.pos,
-        idx 
+        projId: this.id,
+        taskId: idx
       })
-    }
-  },
-  watch: {
-    todosProp () {
-      this.todos = Object.values(this.todosProp)
     }
   },
   data () {
     return {
       newTitle: "",
       editingTitle: false,
-      todos: Object.values(this.todosProp),
       ico: headerIco,
       actions: [{
         name: "edit",
@@ -122,6 +115,7 @@ export default {
   background: white;
   border-radius: 0 0 20px 20px;
   border: 1px solid #a8a8a8;
+  cursor: pointer;
 }
 
 .todo_list>header>.ico {

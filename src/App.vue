@@ -5,43 +5,58 @@
         <h1>SIMPLE TODO LISTS</h1>
         <h3>FROM RUBY GARAGE</h3>
       </header>
-      <section class="todo_lists" v-if="projects.length > 0">
-        <TodoList v-for="(todoList, i) in projects" 
+      <section class="todo_lists" v-if="projects && !addingList">
+        <TodoList v-for="(todoList, i) in projectsArr" 
                   v-bind="{
                     todosProp: todoList.tasks, 
                     title: todoList.name,
-                    id: todoList.id 
+                    id: todoList.id,
+                    pos: i,
+                    projects: projectsArr
                   }"
                   :key="todoList.id"
-                  :pos="i"
                   @delete="deleteList"
                   @delete:todo="deleteItem"
-                  @update:projects="updateProjects" />
+                  @update:todo="updateItem" />
       </section>
+      <form @submit.prevent="createList" class="addingListForm" v-show="addingList">
+        <label>
+          Project's name
+          <input type="text" v-model="newProject.name">
+        </label>
+        <label>
+          Task's name
+          <input type="text" v-model="newProject.firstTaskName">
+        </label>
+        <div class="form-group">
+          <button type="submit">Create</button>
+          <button @click="addingList=false" class="cancel">Cancel</button>
+        </div>
+      </form>
 
-      <button class="stripe blue_elem"><img class="ico" :src="btnIco" alt=""><div class="text">Add TODO List</div></button>
+      <button @click="addingList=true" class="stripe blue_elem" v-show="!addingList">
+        <img class="ico" :src="btnIco" alt="">
+        <div class="text">Add TODO List</div>
+      </button>
 
       <footer>
         &copy; Ruby Garage
       </footer>
-    </main>
+    </main> 
   </div>
 </template>
 
 <script>
 import TodoList from "./TodoList/TodoList"
 import btnIco from "@/assets/plus_btn.svg"
-
+import Projects from "@/utils/projects"
 
 export default {
   methods: {
     onConnect () { 
       this.$wsClient.subscribe('/user/queue/projects-with-tasks', (data) => {
         console.log(data.body)
-        this.projects = JSON.parse(data.body)
-        const ids = new Map();
-        this.projects.forEach((p, i) => ids.set(p.id, i))
-        this.ids = ids
+        this.projects = new Projects(JSON.parse(data.body), this.notifyProjects)
       })
       this.$wsClient.publish({
         destination: '/app/all'
@@ -49,32 +64,67 @@ export default {
 
       this.$wsClient.subscribe('/user/queue/task', res => {
         const task = JSON.parse(res.body)
-        this.updateProjects({pos: this.ids.get(task.projectId), todo: task})
-        //this.$set(this.projects[this.ids.get(task.projectId)].tasks, String(task.id), task)
+        this.projects.createTask(task.projectId, task)
+      })
+
+      //Subscribe on 'new project created' event
+      this.$wsClient.subscribe('/user/queue/project', res => {
+        const project = JSON.parse(res.body)
+        const task = {
+          name: this.newProject.firstTaskName,
+          projectId: project.id
+        }
+
+        this.projects.create(project)
+
+        this.$wsClient.publish({
+          destination: '/app/task/create',
+          body: JSON.stringify(task)
+        })
       })
     },
-    deleteList (pos) {
-      const id = this.projects[pos].id
+    deleteList (projId) {
+      this.projects.delete(projId)
       this.$wsClient.publish({
-        destination: '/app/project/delete/' + id
+        destination: '/app/project/delete/' + projId
       })
-      this.$delete(this.projects, pos)
     },
-    createList (e) {
-      console.log("create TodoList", e)
-      //TODO: create TodoList
+    updateItem ({id, todo}) {
+      console.log("UpdateItem", id, todo)
+      this.projects.updateTask(id, todo)
     },
-    updateProjects ({pos, todo}) {
-      this.$set(this.projects[pos].tasks, String(todo.id), todo)
+    deleteItem ({projId, taskId}) {
+      this.projects.deleteTask(projId, taskId)  
     },
-    deleteItem ({pos, idx}) {
-      this.$delete(this.projects[pos].tasks, String(idx))
+    createList () {
+      console.log("create TodoList")
+      const newProj = {
+        name: this.newProject.name
+      }
+      this.$wsClient.publish({
+        destination: '/app/project/create',
+        body: JSON.stringify(newProj)
+      })
+      this.addingList = false
+    },
+    notifyProjects () {
+      this.$set(this, 'projectsArr', this.projects.getAll())
+    }
+  },
+  watch: {
+    projects () {
+      console.log("Watching projects")
+      this.projectsArr = this.projects.getAll()
     }
   },
   data () {
     return {
-      projects: [],
-      ids: null,
+      projects: null,
+      projectsArr: null,
+      addingList: false,
+      newProject: {
+        todos: null
+      },
       btnIco
     }
   },
@@ -121,8 +171,19 @@ footer {
   border: 1px solid #315589;
 }
 
-button.stripe {
+button {
   border-radius: 2px;
+  cursor: pointer;
+}
+
+.addingListForm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.addingListForm>* {
+  margin: 10px;
 }
 
 </style>
