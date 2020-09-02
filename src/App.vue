@@ -49,7 +49,7 @@
 <script>
 import TodoList from "./TodoList/TodoList"
 import btnIco from "@/assets/plus_btn.svg"
-import Projects from "@/utils/projects"
+import Projects from "@/projects"
 
 export default {
   methods: {

@@ -15,7 +15,7 @@ export default class Projects {
   }
 
   getAll () {
-    return [...Object.values(this._projects)]
+    return Object.values(this._projects)
   }
 
   get (id) {
