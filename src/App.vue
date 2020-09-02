@@ -6,7 +6,7 @@
         <h3>FROM RUBY GARAGE</h3>
       </header>
       <section class="todo_lists" v-if="projects && !addingList">
-        <TodoList v-for="(todoList, i) in projectsArr" 
+        <todo-list v-for="(todoList, i) in projectsArr" 
                   v-bind="{
                     todosProp: todoList.tasks, 
                     title: todoList.name,
@@ -19,20 +19,8 @@
                   @delete:todo="deleteItem"
                   @update:todo="updateItem" />
       </section>
-      <form @submit.prevent="createList" class="addingListForm" v-show="addingList">
-        <label>
-          Project's name
-          <input type="text" v-model="newProject.name">
-        </label>
-        <label>
-          Task's name
-          <input type="text" v-model="newProject.firstTaskName">
-        </label>
-        <div class="form-group">
-          <button type="submit">Create</button>
-          <button @click="addingList=false" class="cancel">Cancel</button>
-        </div>
-      </form>
+
+      <add-list-sec :addingList.sync="addingList" :newProjectRef.sync="newProject" />
 
       <button @click="addingList=true" class="stripe blue_elem" v-show="!addingList">
         <img class="ico" :src="btnIco" alt="">
@@ -48,6 +36,7 @@
 
 <script>
 import TodoList from "./TodoList/TodoList"
+import AddListSec from "./TodoList/AddListSec"
 import btnIco from "@/assets/plus_btn.svg"
 import Projects from "@/projects"
 
@@ -115,6 +104,9 @@ export default {
     projects () {
       console.log("Watching projects")
       this.projectsArr = this.projects.getAll()
+    },
+    newProject () {
+      this.createList()
     }
   },
   data () {
@@ -128,7 +120,7 @@ export default {
       btnIco
     }
   },
-  components: {TodoList}
+  components: {TodoList, AddListSec}
 }
 </script>
 
@@ -176,14 +168,5 @@ button {
   cursor: pointer;
 }
 
-.addingListForm {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.addingListForm>* {
-  margin: 10px;
-}
 
 </style>
