@@ -163,8 +163,13 @@ footer {
   border: 1px solid #315589;
 }
 
+button.blue_elem:hover {
+  background: linear-gradient(#335ba1, #5186c0);
+}
+
 button {
   border-radius: 2px;
+  border: 0;
   cursor: pointer;
 }
 

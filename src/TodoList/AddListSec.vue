@@ -1,12 +1,14 @@
 <template>
-  <form @submit.prevent="$emit('update:newProjectRef', newProject)" class="adding_list_form" v-show="addingList">
+  <form @submit.prevent="submit" class="adding_list_form" v-show="addingList">
     <label>
       Project's name
-      <input type="text" v-model="newProject.name">
+      <input type="text" v-model.trim="$v.name.$model">
+      <template v-if="$v.name.$invalid && $v.$anyDirty">(Field must not be empty)</template>
     </label>
     <label>
       Task's name
-      <input type="text" v-model="newProject.firstTaskName">
+      <input type="text" v-model.trim="$v.firstTaskName.$model">
+      <template v-if="$v.firstTaskName.$invalid && $v.$anyDirty">(Field must not be empty)</template>
     </label>
     <div class="form-group">
       <button type="submit" class="blue_elem">Create</button>
@@ -16,18 +18,32 @@
 </template>
 
 <script>
+import { required } from "vuelidate/lib/validators"
+
 export default {
   name: 'add-list-sec',
   props: {
     addingList: Boolean,
     newProjectRef: Object
   },
+  methods: {
+    submit () {
+      if (this.$v.$invalid) return
+      this.$emit('update:newProjectRef', {name: this.name, firstTaskName: this.firstTaskName})
+    }
+  },
   data () {
     return {
-      newProject: {
-        name: '',
-        firstTaskName: ''
-      }
+      name: '',
+      firstTaskName: ''
+    }
+  },
+  validations: {
+    name: {
+      required
+    },
+    firstTaskName: {
+      required
     }
   }
 }
