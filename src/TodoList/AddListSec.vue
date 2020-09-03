@@ -9,8 +9,8 @@
       <input type="text" v-model="newProject.firstTaskName">
     </label>
     <div class="form-group">
-      <button type="submit">Create</button>
-      <button @click="$emit('update:addingList', false)">Cancel</button>
+      <button type="submit" class="blue_elem">Create</button>
+      <button @click="$emit('update:addingList', false)" class="blue_elem">Cancel</button>
     </div>
   </form>
 </template>
@@ -33,7 +33,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 
 .adding_list_form {
   display: flex;
@@ -42,6 +42,12 @@ export default {
 }
 
 .adding_list_form>* {
+  margin: 10px;
+}
+
+button {
+  min-height: 50px;
+  padding: 10px;
   margin: 10px;
 }
 </style>
