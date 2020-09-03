@@ -113,7 +113,7 @@ export default {
       projectsArr: null,
       addingList: false,
       newProject: null,
-     btnIco
+      btnIco
     }
   },
   components: {TodoList, AddListSec}

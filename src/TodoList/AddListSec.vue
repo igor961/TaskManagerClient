@@ -12,7 +12,7 @@
     </label>
     <div class="form-group">
       <button type="submit" class="blue_elem">Create</button>
-      <button @click="cancel" class="blue_elem">Cancel</button>
+      <button @click="cancel" class="blue_elem" type="button">Cancel</button>
     </div>
   </form>
 </template>
