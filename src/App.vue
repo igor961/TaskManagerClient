@@ -20,7 +20,7 @@
                   @update:todo="updateItem" />
       </section>
 
-      <add-list-sec :addingList.sync="addingList" :newProjectRef.sync="newProject" />
+      <add-list-sec :addingList.sync="addingList" @create:list="createList" />
 
       <button @click="addingList=true" class="stripe blue_elem" v-show="!addingList">
         <img class="ico" :src="btnIco" alt="">
@@ -85,8 +85,9 @@ export default {
     deleteItem ({projId, taskId}) {
       this.projects.deleteTask(projId, taskId)  
     },
-    createList () {
+    createList (newProject) {
       console.log("create TodoList")
+      this.newProject = newProject
       const newProj = {
         name: this.newProject.name
       }
@@ -104,9 +105,6 @@ export default {
     projects () {
       console.log("Watching projects")
       this.projectsArr = this.projects.getAll()
-    },
-    newProject () {
-      this.createList()
     }
   },
   data () {
@@ -114,10 +112,8 @@ export default {
       projects: null,
       projectsArr: null,
       addingList: false,
-      newProject: {
-        todos: null
-      },
-      btnIco
+      newProject: null,
+     btnIco
     }
   },
   components: {TodoList, AddListSec}

@@ -12,7 +12,7 @@
     </label>
     <div class="form-group">
       <button type="submit" class="blue_elem">Create</button>
-      <button @click="$emit('update:addingList', false)" class="blue_elem">Cancel</button>
+      <button @click="cancel" class="blue_elem">Cancel</button>
     </div>
   </form>
 </template>
@@ -23,13 +23,15 @@ import { required } from "vuelidate/lib/validators"
 export default {
   name: 'add-list-sec',
   props: {
-    addingList: Boolean,
-    newProjectRef: Object
+    addingList: Boolean
   },
   methods: {
     submit () {
       if (this.$v.$invalid) return
-      this.$emit('update:newProjectRef', {name: this.name, firstTaskName: this.firstTaskName})
+      this.$emit('create:list', {name: this.name, firstTaskName: this.firstTaskName})
+    },
+    cancel () {
+      this.$emit('update:addingList', false)
     }
   },
   data () {
@@ -52,6 +54,7 @@ export default {
 <style scoped>
 
 .adding_list_form {
+  width: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -61,9 +64,15 @@ export default {
   margin: 10px;
 }
 
+label>* {
+  display: block
+}
+
 button {
   min-height: 50px;
   padding: 10px;
   margin: 10px;
 }
+
+
 </style>
