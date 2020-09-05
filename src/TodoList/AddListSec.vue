@@ -3,12 +3,12 @@
     <label>
       Project's name
       <input type="text" v-model.trim="$v.name.$model">
-      <template v-if="$v.name.$invalid && $v.$anyDirty">(Field must not be empty)</template>
+      <template v-if="$v.name.$invalid && $v.$anyDirty">(Field must not be empty or larger than 64 symbols)</template>
     </label>
     <label>
       Task's name
       <input type="text" v-model.trim="$v.firstTaskName.$model">
-      <template v-if="$v.firstTaskName.$invalid && $v.$anyDirty">(Field must not be empty)</template>
+      <template v-if="$v.firstTaskName.$invalid && $v.$anyDirty">(Field must not be empty or larger than 256 symbols)</template>
     </label>
     <div class="form-group">
       <button type="submit" class="blue_elem">Create</button>
@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import { required } from "vuelidate/lib/validators"
+import { required, maxLength } from "vuelidate/lib/validators"
 
 export default {
   name: 'add-list-sec',
@@ -42,10 +42,12 @@ export default {
   },
   validations: {
     name: {
-      required
+      required,
+      maxLength: maxLength(64)
     },
     firstTaskName: {
-      required
+      required,
+      maxLength: maxLength(256)
     }
   }
 }
@@ -64,8 +66,14 @@ export default {
   margin: 10px;
 }
 
+label {
+  width: 250px;
+}
+
 label>* {
-  display: block
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 button {

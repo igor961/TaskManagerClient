@@ -5,11 +5,12 @@
       <div class="s10px"></div>
       <div class="text" 
            style="padding: 0;" 
-           :contenteditable="editingTitle"
-           @keydown.enter.prevent="newTitle=$event.target.innerText"
+           :contenteditable="editingTitle"           
+           @keydown.enter.prevent="setNewTitle($event.target.innerText)"
            @keyup.enter="updateTitle">
         {{title}}
       </div>
+      <span class="cap" v-if="editingTitle && $v.newTitle.$invalid">(New title must not be empty or larger than 64 symbols)</span>
       <Actions :actions="actions" 
                @edit="editTitle" 
                @delete="$emit('delete', id)" />
@@ -37,6 +38,7 @@ import AddSec from "./AddSec"
 import TodoListItem from "./TodoListItem"
 import Actions from "@/components/Actions"
 import headerIco from "@/assets/tasks.svg"
+import { required, maxLength } from "vuelidate/lib/validators"
 
 export default {
   props: {
@@ -46,7 +48,17 @@ export default {
     id: Number,
     pos: Number
   },
+  validations: {
+    newTitle: {
+      required,
+      maxLength: maxLength(64)
+    }
+  },
   methods: {
+    setNewTitle (title) {
+      this.newTitle = title
+      this.$v.newTitle.$touch()
+    },
     createItem (content) {
       console.log("create Todo", content)
       //this.$set(this.todos, this.todos.length, {id: -1, name: content})
@@ -59,8 +71,8 @@ export default {
       })
     },
     updateTitle () {
+      if (this.$v.newTitle.$invalid) return;
       this.editingTitle = false
-      if (this.newTitle === "") return;
       this.$wsClient.publish({
         destination: '/app/project/update',
         body: JSON.stringify({
@@ -70,6 +82,7 @@ export default {
       })
     },
     editTitle () {
+      this.newTitle = this.title
       this.editingTitle = true
     },
     updateItem (todo) {
@@ -123,12 +136,20 @@ export default {
 }
 
 .stripe {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
   min-height: 50px;
   box-sizing: border-box;
   padding: 10px;
+}
+
+.stripe .cap {
+  position: absolute;
+  top: 25px;
+  left: 50px;
+  color: red;
 }
 
 .stripe.bgchangeable:hover {
