@@ -1,6 +1,6 @@
 <template>
   <div class="stripe bgchangeable list_item">
-    <input type="checkbox" @change="markDone" :checked="todo.done" />
+    <input type="checkbox" @change="markDone" :checked="todo.status" />
     <div class="s5px bordered"></div>
     <div class="text" 
          @keydown.enter.prevent="setNewText($event.target.innerText)"
@@ -57,7 +57,7 @@ export default {
       this.$v.newText.$touch()
     },
     markDone () {
-      const status = !this.todo.done
+      const status = !this.todo.status
       console.log("change status (done)", status)
       const newTodo = {...this.todo}
       newTodo.status = status
