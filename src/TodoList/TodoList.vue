@@ -21,6 +21,7 @@
         <TodoListItem v-for="(v, i) in projects[pos].tasks" 
                       @update:todo="updateItem"
                       @delete:todo="deleteItem"
+                      @update:priority="$emit('update:priority', $event)"
                       :todo="v"
                       :pos="parseInt(i)"
                       :key="v.id">
@@ -61,7 +62,6 @@ export default {
     },
     createItem (content) {
       console.log("create Todo", content)
-      //this.$set(this.todos, this.todos.length, {id: -1, name: content})
       this.$wsClient.publish({
         destination: '/app/task/create',
         body: JSON.stringify({
@@ -91,10 +91,10 @@ export default {
         todo
       })
     },
-    deleteItem (idx) {
+    deleteItem (task) {
       this.$emit('delete:todo', {
         projId: this.id,
-        taskId: idx
+        task
       })
     }
   },

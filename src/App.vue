@@ -15,6 +15,7 @@
                     projects: projectsArr
                   }"
                   :key="todoList.id"
+                  @update:priority="updatePriority"
                   @delete="deleteList"
                   @delete:todo="deleteItem"
                   @update:todo="updateItem" />
@@ -82,8 +83,8 @@ export default {
       console.log("UpdateItem", id, todo)
       this.projects.updateTask(id, todo)
     },
-    deleteItem ({projId, taskId}) {
-      this.projects.deleteTask(projId, taskId)  
+    deleteItem ({projId, task}) {
+      this.projects.deleteTask(projId, task)  
     },
     createList (newProject) {
       console.log("create TodoList")
@@ -99,6 +100,13 @@ export default {
     },
     notifyProjects () {
       this.$set(this, 'projectsArr', this.projects.getAll())
+    },
+    updatePriority (task) {
+      this.projects.changePriority(task)
+      //TODO: implement new ui (button that is pressed whenever it's decided to end changing priority)
+    },
+    publishPriorities () {
+      //TODO: implement sending whole project with changed tasks
     }
   },
   watch: {

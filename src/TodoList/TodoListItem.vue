@@ -89,16 +89,18 @@ export default {
       this.$wsClient.publish({
         destination: '/app/task/delete/' + this.todo.id
       });
-      this.$emit('delete:todo', this.todo.id)
+      this.$emit('delete:todo', this.todo)
     },
     changePriority () {
-      console.log("change priority", this.pos)
-      /*if (this.pos===0) return
-      const tmp = todos[this.pos]
-      todos[this.pos] = todos[this.pos-1]
-      todos[this.pos-1] = tmp
-       */
-      // TODO: implement
+      console.log("change priority")
+        /*
+      this.$wsClient.publish({
+        destination: '/app/task/update',
+        body: JSON.stringify({...this.todo, priority})
+      })
+         */
+
+      this.$emit('update:priority', this.todo)
     }
   },
   components: {
