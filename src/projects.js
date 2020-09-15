@@ -56,6 +56,45 @@ export default class Projects {
     this._notifyCb()
   }
 
+  _replaceAuxIds(task1, task2) {
+    const idLength = task1.auxId.length
+    task1.auxId = task1.auxId.replace(task1.priority, task2.priority)
+    task2.auxId = task2.auxId.replace(task2.priority, task1.priority)
+
+    for (const t of [task1, task2]) {
+      const diff = t.auxId.length - idLength
+      if (diff > 0) 
+        t.auxId = t.auxId.substring(0, idLength)
+      else if (diff < 0)
+        t.auxId += Math.random() * Math.pow(10, Math.abs(diff))
+    } 
+  }
+
+  _swapPriorities (task1, task2) {
+    task1.priority += task2.priority
+    task2.priority = task1.priority - task2.priority
+    task1.priority -= task2.priority
+  }
+  
+  _updatePrevNextId (tasks, oldId1, newId) {
+    // Slow search
+    //const res = Object.values(tasks).find(t => t.nextId === oldId1)
+    //if (res) res.nextId = newId
+
+    //Binary search
+    console.log("Binary search, searching id=" + oldId1 + " and replacing it with " + newId)
+    for (let arr = Object.values(tasks), r = arr.length, l = 0, m = parseInt(r / 2); r >= l; m = parseInt((r - l) / 2)) {
+      if (arr[m].nextId > oldId1)
+        r -= m + 1;
+      else if (arr[m].nextId < oldId1)
+        l += m + 1;
+      else if (arr[m].nextId === oldId1) {
+        arr[m].nextId = newId
+        return;
+      }
+    }
+  }
+
   changePriority (task) {
     const [pId, tId, nextId] = [task.projectId, task.auxId, task.nextId]
     console.log(task, nextId)
@@ -68,14 +107,11 @@ export default class Projects {
     const oldId1 = task1.auxId
 
     // renew auxIds
-    task1.auxId = task1.auxId.replace(task1.priority, task2.priority)
-    task2.auxId = task2.auxId.replace(task2.priority, task1.priority)
+    this._replaceAuxIds(task1, task2)
 
     // swap priorities
-    task1.priority += task2.priority
-    task2.priority = task1.priority - task2.priority
-    task1.priority -= task2.priority
-    
+    this._swapPriorities(task1, task2)
+
     // delete old tasks
     delete tasks[tId]
     delete tasks[nextId]
@@ -85,26 +121,12 @@ export default class Projects {
     tasks[task2.auxId] = task2
 
     // swap nextIds
-    
     task1.nextId = task2.nextId
     task2.nextId = task1.auxId //!!!
 
-    // Slow search
-    //Object.values(tasks).find(t => t.nextId === oldId1).nextId = task2.auxId
-    
-    //Binary search
-    console.log("Binary search, searching id=" + oldId1 + " and replacing it with " + task2.auxId)
-    for (let arr = Object.values(tasks), r = arr.length, l = 0, m = parseInt(r / 2); r > l; m = parseInt((r - l) / 2)-1) {
-      if (arr[m].nextId > oldId1)
-        r -= m;
-      else if (arr[m].nextId < oldId1)
-        l += m;
-      else if (arr[m].nextId === oldId1) {
-        arr[m].nextId = task2.auxId
-        break;
-      }
-    }
-       
+    // Update previous task's nextId
+    this._updatePrevNextId(tasks, oldId1, task2.auxId) 
+
     this._notifyCb()
   }
 }
