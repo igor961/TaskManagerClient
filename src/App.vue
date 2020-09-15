@@ -15,6 +15,7 @@
                     projects: projectsArr
                   }"
                   :key="todoList.id"
+                  @send:batch="sendBatch"
                   @update:priority="updatePriority"
                   @delete="deleteList"
                   @delete:todo="deleteItem"
@@ -103,10 +104,13 @@ export default {
     },
     updatePriority (task) {
       this.projects.changePriority(task)
-      //TODO: implement new ui (button that is pressed whenever it's decided to end changing priority)
     },
-    publishPriorities () {
-      //TODO: implement sending whole project with changed tasks
+    sendBatch (id) {
+      console.log(id)
+      this.$wsClient.publish({
+        destination: '/app/project/batch',
+        body: JSON.stringify(this.projects.get(id))
+      })
     }
   },
   watch: {

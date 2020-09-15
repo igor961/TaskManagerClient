@@ -21,7 +21,7 @@
         <TodoListItem v-for="(v, i) in projects[pos].tasks" 
                       @update:todo="updateItem"
                       @delete:todo="deleteItem"
-                      @update:priority="$emit('update:priority', $event)"
+                      @update:priority="$emit('update:priority', $event) && (batchReady = true)"
                       :todo="v"
                       :pos="parseInt(i)"
                       :key="v.id">
@@ -31,6 +31,9 @@
         </TodoListItem>
       </div>
     </article>
+    <button @click="$emit('send:batch', id) && (batchReady = false)" class="send_batch_button" v-show="batchReady">
+      Finish
+    </button>
   </section>
 </template>
 
@@ -100,6 +103,7 @@ export default {
   },
   data () {
     return {
+      batchReady: false,
       newTitle: "",
       editingTitle: false,
       ico: headerIco,
@@ -204,5 +208,11 @@ header .s1px {
   background: #5284bf;
 }
 
+.send_batch_button {
+  position: absolute;
+  left: 150px;
+  background: red;
+  color: #fff;
+}
 
 </style>
