@@ -107,9 +107,13 @@ export default {
     },
     sendBatch (id) {
       console.log(id)
+      const project = this.projects.get(id)
       this.$wsClient.publish({
         destination: '/app/project/batch',
-        body: JSON.stringify(this.projects.get(id))
+        body: JSON.stringify({
+          id: project.id,
+          tasks: Object.values(project.tasks)
+        })
       })
     }
   },

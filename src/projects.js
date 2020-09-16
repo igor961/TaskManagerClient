@@ -31,14 +31,14 @@ export default class Projects {
   createTask (id, task) {
     const project = this._projects[id]
 
-    let tasks = Object.values(project.tasks)
     if (!project.tasks) 
-      project.tasks = {}
-    else if (tasks.length) 
-      task.auxId = this._generateNewAuxId(task, tasks[0].auxId)
+      project.tasks = {}  
+    else if (project.tasks.length)
+      task.auxId = this._generateNewAuxId(task, project.tasks[0].auxId)
     project.tasks[task.auxId] = task
 
-    tasks = Object.values(project.tasks)
+    let tasks = Object.values(project.tasks)
+
     if (tasks.length > 0) {
       const res = this._binarySearch(tasks, 'auxId', task.auxId) 
       if (!res) return;
