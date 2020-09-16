@@ -35,7 +35,7 @@ export default class Projects {
     if (!project.tasks) 
       project.tasks = {}
     else if (tasks.length) 
-      task.auxId = this._fixAuxId(task.auxId, tasks[0].auxId)
+      task.auxId = this._generateNewAuxId(task, tasks[0].auxId)
     project.tasks[task.auxId] = task
 
     tasks = Object.values(project.tasks)
@@ -75,24 +75,12 @@ export default class Projects {
   }
 
   _replaceAuxIds (task1, task2) {
-    const originId = task1.auxId
     task1.auxId = task1.auxId.replace(task1.priority, task2.priority)
     task2.auxId = task2.auxId.replace(task2.priority, task1.priority)
 
     for (const t of [task1, task2]) {
-      t.auxId = this._fixAuxId(t.auxId, originId)
+      t.auxId = this._generateNewAuxId(t)
     }
-  }
-
-  _fixAuxId (actualId, originId) {
-    let actualStr = String(actualId)
-    let originStr = String(originId)
-    const diff = actualStr.length - originStr.length
-    if (diff > 0) 
-      actualStr = actualStr.substring(0, originStr.length)
-    else if (diff < 0)
-      actualStr += Math.random() * Math.pow(10, Math.abs(diff))
-    return actualStr
   }
 
   _swapPriorities (task1, task2) {
@@ -137,9 +125,7 @@ export default class Projects {
 
     // Save old task1 id to change it in previous task
     const oldId1 = task1.auxId
-//eslint-disable-next-line
-    debugger
-    // TODO: implement same-priority-problem solution
+
     const spRes = this._fixSamePriorities(tasks)
     if (spRes) {
       tId = this._renewAuxIds(tasks, task)
@@ -150,11 +136,12 @@ export default class Projects {
     
     if (!task1 || !task2) return;
     
+    // swap priorities
+    this._swapPriorities(task1, task2)
+    
     // renew auxIds
     this._replaceAuxIds(task1, task2)
 
-    // swap priorities
-    this._swapPriorities(task1, task2)
 
     // delete old tasks
     delete tasks[tId]
@@ -191,10 +178,7 @@ export default class Projects {
     for (let k = 1; k < tasksArr.length; ++k) {
       const nextTask = tasksArr[k]
       const oldId = nextTask.auxId
-      let newId = String(nextTask.priority)
-      const len = String(oldId).length - newId.length - String(nextTask.id).length
-      for (let i = 0; i < (len ? len : 1); ++i) newId += '0'
-      newId += nextTask.id
+      let newId = this._generateNewAuxId(nextTask)
       if (oldId == newId) continue
       nextTask.auxId = newId
       nextTask.nextId = null
@@ -204,5 +188,13 @@ export default class Projects {
       if (oldId == returnId) returnId = newId
     }
     return returnId
+  }
+
+  _generateNewAuxId (task, originId) {
+    let newId = String(task.priority)
+    const len = String(originId || task.auxId).length - newId.length - String(task.id).length
+    for (let i = 0; i < (len ? len : 1); ++i) newId += '0'
+    newId += task.id
+    return newId
   }
 }
