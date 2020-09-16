@@ -75,8 +75,8 @@ export default class Projects {
   }
 
   _replaceAuxIds (task1, task2) {
-    task1.auxId = task1.auxId.replace(task1.priority, task2.priority)
-    task2.auxId = task2.auxId.replace(task2.priority, task1.priority)
+    task1.auxId = String(task1.auxId).replace(task1.priority, task2.priority)
+    task2.auxId = String(task2.auxId).replace(task2.priority, task1.priority)
 
     for (const t of [task1, task2]) {
       t.auxId = this._generateNewAuxId(t)
