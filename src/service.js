@@ -11,24 +11,18 @@ export default function plugin(url, cred={}) {
     arr: [],
     register (vm) {
       this.arr.push(vm)
+    },
+    onConnect () {
+      this.arr.map(v => {
+        console.log(v.$wsClient.connected)
+        v.onConnect()
+      })
+      console.log('Connected')
     }
   }
 
-  client.onConnect = () => {
-    service.arr.map(v => {
-      console.log(v.$wsClient.connected)
-      v.onConnect()
-    })
-    client.subscribe('/user/queue/reply', ()=>{})
+  client.onConnect = service.onConnect.bind(service)
 
-    client.publish({
-      destination: '/app/test',
-      body: 'hi'
-    })
-
-
-    console.log("Connected")
-  }
 
   const plugin = {
     install (Vue) {

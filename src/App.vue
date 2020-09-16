@@ -6,7 +6,7 @@
         <h3>FROM RUBY GARAGE</h3>
       </header>
       <section class="todo_lists" v-if="projects && !addingList">
-        <TodoList v-for="(todoList, i) in projectsArr" 
+        <todo-list v-for="(todoList, i) in projectsArr" 
                   v-bind="{
                     todosProp: todoList.tasks, 
                     title: todoList.name,
@@ -15,24 +15,14 @@
                     projects: projectsArr
                   }"
                   :key="todoList.id"
+                  @send:batch="sendBatch"
+                  @update:priority="updatePriority"
                   @delete="deleteList"
                   @delete:todo="deleteItem"
                   @update:todo="updateItem" />
       </section>
-      <form @submit.prevent="createList" class="addingListForm" v-show="addingList">
-        <label>
-          Project's name
-          <input type="text" v-model="newProject.name">
-        </label>
-        <label>
-          Task's name
-          <input type="text" v-model="newProject.firstTaskName">
-        </label>
-        <div class="form-group">
-          <button type="submit">Create</button>
-          <button @click="addingList=false" class="cancel">Cancel</button>
-        </div>
-      </form>
+
+      <add-list-sec :addingList.sync="addingList" @create:list="createList" />
 
       <button @click="addingList=true" class="stripe blue_elem" v-show="!addingList">
         <img class="ico" :src="btnIco" alt="">
@@ -48,8 +38,9 @@
 
 <script>
 import TodoList from "./TodoList/TodoList"
+import AddListSec from "./TodoList/AddListSec"
 import btnIco from "@/assets/plus_btn.svg"
-import Projects from "@/utils/projects"
+import Projects from "@/projects"
 
 export default {
   methods: {
@@ -93,11 +84,12 @@ export default {
       console.log("UpdateItem", id, todo)
       this.projects.updateTask(id, todo)
     },
-    deleteItem ({projId, taskId}) {
-      this.projects.deleteTask(projId, taskId)  
+    deleteItem ({projId, task}) {
+      this.projects.deleteTask(projId, task)  
     },
-    createList () {
+    createList (newProject) {
       console.log("create TodoList")
+      this.newProject = newProject
       const newProj = {
         name: this.newProject.name
       }
@@ -109,6 +101,16 @@ export default {
     },
     notifyProjects () {
       this.$set(this, 'projectsArr', this.projects.getAll())
+    },
+    updatePriority (task) {
+      this.projects.changePriority(task)
+    },
+    sendBatch (id) {
+      console.log(id)
+      this.$wsClient.publish({
+        destination: '/app/project/batch',
+        body: JSON.stringify(this.projects.get(id))
+      })
     }
   },
   watch: {
@@ -122,13 +124,11 @@ export default {
       projects: null,
       projectsArr: null,
       addingList: false,
-      newProject: {
-        todos: null
-      },
+      newProject: null,
       btnIco
     }
   },
-  components: {TodoList}
+  components: {TodoList, AddListSec}
 }
 </script>
 
@@ -171,19 +171,15 @@ footer {
   border: 1px solid #315589;
 }
 
+button.blue_elem:hover {
+  background: linear-gradient(#335ba1, #5186c0);
+}
+
 button {
   border-radius: 2px;
+  border: 0;
   cursor: pointer;
 }
 
-.addingListForm {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.addingListForm>* {
-  margin: 10px;
-}
 
 </style>

@@ -1,13 +1,14 @@
 <template>
   <div class="stripe bgchangeable list_item">
-    <input type="checkbox" @change="markDone" :checked="todo.done" />
+    <input type="checkbox" @change="markDone" :checked="todo.status" />
     <div class="s5px bordered"></div>
     <div class="text" 
-         @keydown.enter.prevent="newText=$event.target.innerText"
+         @keydown.enter.prevent="setNewText($event.target.innerText)"
          @keyup.enter="updateItem"
          :contenteditable="editingState">
       <slot name="content"></slot>
     </div>
+    <span class="cap" v-if="editingState && $v.newText.$invalid">(New title must not be empty or larger than 256 symbols)</span>
     <div class="s1px"></div>
     <Actions :actions="actions"
              v-on="{
@@ -20,6 +21,7 @@
 
 <script>
 import Actions from "@/components/Actions"
+import { required, maxLength } from "vuelidate/lib/validators"
 
 export default {
   props: {
@@ -43,12 +45,19 @@ export default {
       }],
     }
   },
+  validations: {
+    newText: {
+      required,
+      maxLength: maxLength(256)
+    }
+  },
   methods: {
-    onConnect() {
-
+    setNewText (text) {
+      this.newText = text
+      this.$v.newText.$touch()
     },
     markDone () {
-      const status = !this.todo.done
+      const status = !this.todo.status
       console.log("change status (done)", status)
       const newTodo = {...this.todo}
       newTodo.status = status
@@ -61,8 +70,10 @@ export default {
     editItem () {
       console.log("edit Todo")
       this.editingState = true
+      this.newText = this.$slots.content[0].text
     },
     updateItem () {
+      if (this.$v.newText.$invalid) return;
       console.log("update Todo", this.newText)
       this.editingState = false
       const newTodo = {...this.todo}
@@ -78,16 +89,18 @@ export default {
       this.$wsClient.publish({
         destination: '/app/task/delete/' + this.todo.id
       });
-      this.$emit('delete:todo', this.todo.id)
+      this.$emit('delete:todo', this.todo)
     },
     changePriority () {
-      console.log("change priority", this.pos)
-      /*if (this.pos===0) return
-      const tmp = todos[this.pos]
-      todos[this.pos] = todos[this.pos-1]
-      todos[this.pos-1] = tmp
-       */
-      // TODO: implement
+      console.log("change priority")
+        /*
+      this.$wsClient.publish({
+        destination: '/app/task/update',
+        body: JSON.stringify({...this.todo, priority})
+      })
+         */
+
+      this.$emit('update:priority', this.todo)
     }
   },
   components: {

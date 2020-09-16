@@ -2,24 +2,39 @@
   <div class="stripe add_sec">
     <img :src="img" class="ico" alt="" />
     <div class="s10px"></div>
-    <form @submit.prevent="$emit('create', newTaskContent)">
-      <input type="text" placeholder="Start typing here to create a task" v-model="newTaskContent" />
+    <form @submit.prevent="submit">
+      <input type="text" placeholder="Start typing here to create a task" @focus="editingState=true" @blur="editingState=false" v-model="newTaskContent" />
       <button type="submit">Add Task</button>
     </form>
+    <span class="cap" v-show="editingState && $v.newTaskContent.$invalid">(New content must not be empty or larger than 256 symbols)</span>
   </div>
 </template>
 
 <script>
-  import ico from "@/assets/plus.svg"
+import ico from "@/assets/plus.svg"
+import { required, maxLength } from "vuelidate/lib/validators"
 
-  export default {
-    data () {
-      return {
-        img: ico, 
-        newTaskContent: ""
-      }
+export default {
+  data () {
+    return {
+      editingState: false,
+      img: ico, 
+      newTaskContent: ""
+    }
+  },
+  validations: {
+    newTaskContent: {
+      required,
+      maxLength: maxLength(256)
+    }
+  },
+  methods: {
+    submit () {
+      if (this.$v.newTaskContent.$invalid) return;
+      this.$emit('create', this.newTaskContent)
     }
   }
+}
 </script>
 
 <style scoped>

@@ -5,11 +5,12 @@
       <div class="s10px"></div>
       <div class="text" 
            style="padding: 0;" 
-           :contenteditable="editingTitle"
-           @keydown.enter.prevent="newTitle=$event.target.innerText"
+           :contenteditable="editingTitle"           
+           @keydown.enter.prevent="setNewTitle($event.target.innerText)"
            @keyup.enter="updateTitle">
         {{title}}
       </div>
+      <span class="cap" v-if="editingTitle && $v.newTitle.$invalid">(New title must not be empty or larger than 64 symbols)</span>
       <Actions :actions="actions" 
                @edit="editTitle" 
                @delete="$emit('delete', id)" />
@@ -20,6 +21,7 @@
         <TodoListItem v-for="(v, i) in projects[pos].tasks" 
                       @update:todo="updateItem"
                       @delete:todo="deleteItem"
+                      @update:priority="$emit('update:priority', $event) && (batchReady = true)"
                       :todo="v"
                       :pos="parseInt(i)"
                       :key="v.id">
@@ -29,6 +31,9 @@
         </TodoListItem>
       </div>
     </article>
+    <button @click="$emit('send:batch', id) && (batchReady = false)" class="send_batch_button" v-show="batchReady">
+      Finish
+    </button>
   </section>
 </template>
 
@@ -37,6 +42,7 @@ import AddSec from "./AddSec"
 import TodoListItem from "./TodoListItem"
 import Actions from "@/components/Actions"
 import headerIco from "@/assets/tasks.svg"
+import { required, maxLength } from "vuelidate/lib/validators"
 
 export default {
   props: {
@@ -46,10 +52,19 @@ export default {
     id: Number,
     pos: Number
   },
+  validations: {
+    newTitle: {
+      required,
+      maxLength: maxLength(64)
+    }
+  },
   methods: {
+    setNewTitle (title) {
+      this.newTitle = title
+      this.$v.newTitle.$touch()
+    },
     createItem (content) {
       console.log("create Todo", content)
-      //this.$set(this.todos, this.todos.length, {id: -1, name: content})
       this.$wsClient.publish({
         destination: '/app/task/create',
         body: JSON.stringify({
@@ -59,8 +74,8 @@ export default {
       })
     },
     updateTitle () {
+      if (this.$v.newTitle.$invalid) return;
       this.editingTitle = false
-      if (this.newTitle === "") return;
       this.$wsClient.publish({
         destination: '/app/project/update',
         body: JSON.stringify({
@@ -70,6 +85,7 @@ export default {
       })
     },
     editTitle () {
+      this.newTitle = this.title
       this.editingTitle = true
     },
     updateItem (todo) {
@@ -78,15 +94,16 @@ export default {
         todo
       })
     },
-    deleteItem (idx) {
+    deleteItem (task) {
       this.$emit('delete:todo', {
         projId: this.id,
-        taskId: idx
+        task
       })
     }
   },
   data () {
     return {
+      batchReady: false,
       newTitle: "",
       editingTitle: false,
       ico: headerIco,
@@ -116,6 +133,7 @@ export default {
   border-radius: 0 0 20px 20px;
   border: 1px solid #a8a8a8;
   cursor: pointer;
+  position: relative;
 }
 
 .todo_list>header>.ico {
@@ -123,12 +141,20 @@ export default {
 }
 
 .stripe {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
   min-height: 50px;
   box-sizing: border-box;
   padding: 10px;
+}
+
+.stripe .cap {
+  position: absolute;
+  top: 25px;
+  left: 50px;
+  color: red;
 }
 
 .stripe.bgchangeable:hover {
@@ -183,5 +209,11 @@ header .s1px {
   background: #5284bf;
 }
 
+.send_batch_button {
+  position: absolute;
+  left: 150px;
+  background: red;
+  color: #fff;
+}
 
 </style>
