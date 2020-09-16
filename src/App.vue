@@ -112,11 +112,8 @@ export default {
       console.log(id)
       const project = this.projects.get(id)
       this.$wsClient.publish({
-        destination: '/app/project/batch',
-        body: JSON.stringify({
-          id: project.id,
-          tasks: Object.values(project.tasks)
-        })
+        destination: '/app/task/batch',
+        body: JSON.stringify(Object.values(project.tasks))
       })
     }
   },
