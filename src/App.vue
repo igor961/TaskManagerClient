@@ -5,6 +5,7 @@
         <h1>SIMPLE TODO LISTS</h1>
         <h3>FROM RUBY GARAGE</h3>
       </header>
+      <loading :active.sync="isLoading" />
       <section class="todo_lists" v-if="projects && !addingList">
         <todo-list v-for="(todoList, i) in projectsArr" 
                   v-bind="{
@@ -24,7 +25,7 @@
 
       <add-list-sec :addingList.sync="addingList" @create:list="createList" />
 
-      <button @click="addingList=true" class="stripe blue_elem" v-show="!addingList">
+      <button @click="addingList=true" class="stripe blue_elem" v-show="!isLoading && !addingList">
         <img class="ico" :src="btnIco" alt="">
         <div class="text">Add TODO List</div>
       </button>
@@ -41,10 +42,12 @@ import TodoList from "./TodoList/TodoList"
 import AddListSec from "./TodoList/AddListSec"
 import btnIco from "@/assets/plus_btn.svg"
 import Projects from "@/projects"
+import Loading from 'vue-loading-overlay'
 
 export default {
   methods: {
     onConnect () { 
+      this.isLoading = false
       this.$wsClient.subscribe('/user/queue/projects-with-tasks', (data) => {
         console.log(data.body)
         this.projects = new Projects(JSON.parse(data.body), this.notifyProjects)
@@ -129,10 +132,11 @@ export default {
       projectsArr: null,
       addingList: false,
       newProject: null,
-      btnIco
+      btnIco,
+      isLoading: true
     }
   },
-  components: {TodoList, AddListSec}
+  components: {TodoList, AddListSec, Loading}
 }
 </script>
 
