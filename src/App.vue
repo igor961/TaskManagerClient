@@ -54,6 +54,8 @@ export default {
       })
 
       this.$wsClient.subscribe('/user/queue/task', res => {
+        //eslint-disable-next-line
+        debugger
         const task = JSON.parse(res.body)
         this.projects.createTask(task.projectId, task)
       })
