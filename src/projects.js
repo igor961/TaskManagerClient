@@ -29,7 +29,25 @@ export default class Projects {
   }
 
   createTask (id, task) {
-    return this.updateTask(id, task)
+    const project = this._projects[id]
+
+    let tasks = Object.values(project.tasks)
+    if (!project.tasks) 
+      project.tasks = {}
+    else if (tasks.length) 
+      task.auxId = this._fixAuxId(task.auxId, tasks[0].auxId)
+    project.tasks[task.auxId] = task
+
+    tasks = Object.values(project.tasks)
+    if (tasks.length > 0) {
+      const res = this._binarySearch(tasks, 'auxId', task.auxId) 
+      if (!res) return;
+      const nextTask = tasks[res[1]+1]
+      const prevTask = tasks[res[1]-1]
+      task.nextId = (nextTask) ? nextTask.auxId : null
+      if (prevTask) prevTask.nextId = task.auxId
+    }
+    this._notifyCb()
   }
 
   update (project) {
@@ -56,18 +74,25 @@ export default class Projects {
     this._notifyCb()
   }
 
-  _replaceAuxIds(task1, task2) {
-    const idLength = task1.auxId.length
+  _replaceAuxIds (task1, task2) {
+    const originId = task1.auxId
     task1.auxId = task1.auxId.replace(task1.priority, task2.priority)
     task2.auxId = task2.auxId.replace(task2.priority, task1.priority)
 
     for (const t of [task1, task2]) {
-      const diff = t.auxId.length - idLength
-      if (diff > 0) 
-        t.auxId = t.auxId.substring(0, idLength)
-      else if (diff < 0)
-        t.auxId += Math.random() * Math.pow(10, Math.abs(diff))
-    } 
+      t.auxId = this._fixAuxId(t.auxId, originId)
+    }
+  }
+
+  _fixAuxId (actualId, originId) {
+    let actualStr = String(actualId)
+    let originStr = String(originId)
+    const diff = actualStr.length - originStr.length
+    if (diff > 0) 
+      actualStr = actualStr.substring(0, originStr.length)
+    else if (diff < 0)
+      actualStr += Math.random() * Math.pow(10, Math.abs(diff))
+    return actualStr
   }
 
   _swapPriorities (task1, task2) {
@@ -75,7 +100,7 @@ export default class Projects {
     task2.priority = task1.priority - task2.priority
     task1.priority -= task2.priority
   }
-  
+
   _updatePrevNextId (tasks, oldId1, newId) {
     // Slow search
     //const res = Object.values(tasks).find(t => t.nextId === oldId1)
@@ -83,14 +108,19 @@ export default class Projects {
 
     //Binary search
     console.log("Binary search, searching id=" + oldId1 + " and replacing it with " + newId)
-    for (let arr = Object.values(tasks), r = arr.length, l = 0, m = parseInt(r / 2); r >= l; m = parseInt((r - l) / 2)) {
-      if (arr[m].nextId > oldId1)
+    const key = 'nextId'
+    const res = this._binarySearch(Object.values(tasks), key, oldId1)
+    if (res) res[0][key] = newId
+  }
+
+  _binarySearch (arr, key, val) {
+    for (let r = arr.length, l = 0, m = parseInt(r / 2); r >= l; m = l + parseInt((r - l) / 2)) {
+      if (arr[m][key] > val)
         r -= m + 1;
-      else if (arr[m].nextId < oldId1)
+      else if (arr[m][key] < val)
         l += m + 1;
-      else if (arr[m].nextId === oldId1) {
-        arr[m].nextId = newId
-        return;
+      else if (arr[m][key] === val) {
+        return [arr[m], m]
       }
     }
   }
