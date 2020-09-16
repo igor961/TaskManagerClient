@@ -126,16 +126,30 @@ export default class Projects {
   }
 
   changePriority (task) {
-    const [pId, tId, nextId] = [task.projectId, task.auxId, task.nextId]
+    let [pId, tId, nextId] = [task.projectId, task.auxId, task.nextId]
     console.log(task, nextId)
     if (!nextId) return;
     const tasks = this._projects[pId].tasks
-    const task1 = tasks[tId]
-    const task2 = tasks[nextId]
+    let task1 = tasks[tId]
+    let task2 = tasks[nextId]
+
+    if (!task1 || !task2) return;
 
     // Save old task1 id to change it in previous task
     const oldId1 = task1.auxId
-
+//eslint-disable-next-line
+    debugger
+    // TODO: implement same-priority-problem solution
+    const spRes = this._fixSamePriorities(tasks)
+    if (spRes) {
+      tId = this._renewAuxIds(tasks, task)
+      task1 = tasks[tId]
+      nextId = task1.nextId
+      task2 = tasks[nextId]
+    }
+    
+    if (!task1 || !task2) return;
+    
     // renew auxIds
     this._replaceAuxIds(task1, task2)
 
@@ -158,5 +172,37 @@ export default class Projects {
     this._updatePrevNextId(tasks, oldId1, task2.auxId) 
 
     this._notifyCb()
+  }
+
+  _fixSamePriorities (tasks) {
+    const tasksArr = Object.values(tasks)
+    let mut = false
+    for (let i = 1; i < tasksArr.length; ++i) {
+      if (tasksArr[i].priority != tasksArr[i-1].priority + 1) 
+        mut = true
+      tasksArr[i].priority = tasksArr[i-1].priority + 1
+    }
+    return mut
+  }
+
+  _renewAuxIds (tasks, task) {
+    const tasksArr = Object.values(tasks)
+    let returnId = task.auxId
+    for (let k = 1; k < tasksArr.length; ++k) {
+      const nextTask = tasksArr[k]
+      const oldId = nextTask.auxId
+      let newId = String(nextTask.priority)
+      const len = String(oldId).length - newId.length - String(nextTask.id).length
+      for (let i = 0; i < (len ? len : 1); ++i) newId += '0'
+      newId += nextTask.id
+      if (oldId == newId) continue
+      nextTask.auxId = newId
+      nextTask.nextId = null
+      tasksArr[k-1].nextId = newId
+      delete tasks[oldId]
+      tasks[newId] = nextTask
+      if (oldId == returnId) returnId = newId
+    }
+    return returnId
   }
 }

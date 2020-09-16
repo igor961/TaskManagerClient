@@ -133,6 +133,7 @@ export default {
   border-radius: 0 0 20px 20px;
   border: 1px solid #a8a8a8;
   cursor: pointer;
+  position: relative;
 }
 
 .todo_list>header>.ico {
