@@ -60,7 +60,7 @@ export default {
 
       this.$wsClient.subscribe('/user/queue/task', res => {
         const task = JSON.parse(res.body)
-        this.projects.createTask(task.projectId, task)
+        this.projects.createTask(task)
       })
 
       //Subscribe on 'new project created' event
@@ -92,10 +92,10 @@ export default {
         body: JSON.stringify(task)
       });
       this.editingTaskObj.status = false
-      this.projects.updateTask(task.projectId, task)
+      this.projects.updateTask(task)
     },
-    deleteItem ({projId, task}) {
-      this.projects.deleteTask(projId, task)  
+    deleteItem (task) {
+      this.projects.deleteTask(task)  
     },
     createList (newProject) {
       console.log("create TodoList")

@@ -20,8 +20,7 @@
       <div class="view_sec">
         <TodoListItem v-for="(v, i) in projects[pos].tasks" 
                       @edit:todo="$emit('edit:todo', $event)"
-                      @update:todo="updateItem"
-                      @delete:todo="deleteItem"
+                      @delete:todo="$emit('delete:todo', $event)"
                       @update:priority="$emit('update:priority', $event) && (batchReady = true)"
                       :todo="v"
                       :pos="parseInt(i)"
@@ -88,18 +87,6 @@ export default {
     editTitle () {
       this.newTitle = this.title
       this.editingTitle = true
-    },
-    updateItem (todo) {
-      this.$emit('update:todo', {
-        id: this.id,
-        todo
-      })
-    },
-    deleteItem (task) {
-      this.$emit('delete:todo', {
-        projId: this.id,
-        task
-      })
     }
   },
   data () {

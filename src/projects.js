@@ -28,8 +28,8 @@ export default class Projects {
     this._notifyCb()
   }
 
-  createTask (id, task) {
-    const project = this._projects[id]
+  createTask (task) {
+    const project = this._projects[task.projectId]
 
     if (!project.tasks) 
       project.tasks = {}  
@@ -56,8 +56,9 @@ export default class Projects {
     this._notifyCb()
   }
 
-  updateTask (id, task) {
+  updateTask (task) {
     const tId = task.auxId
+    const id = task.projectId
     if (!this._projects[id].tasks) this._projects[id].tasks = {}
     this._projects[id].tasks[tId] = task
     this._notifyCb()
@@ -68,9 +69,9 @@ export default class Projects {
     this._notifyCb()
   }
 
-  deleteTask (pId, task) {
+  deleteTask (task) {
     const tId = task.auxId
-    delete this._projects[pId].tasks[tId]
+    delete this._projects[task.projectId].tasks[tId]
     this._notifyCb()
   }
 
