@@ -26,4 +26,8 @@ export default {
   .action>img:hover {
     opacity: 1;
   }
+
+  .s1px {
+    margin: 3px 0;
+  }
 </style>

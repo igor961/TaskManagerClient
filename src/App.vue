@@ -5,6 +5,8 @@
         <h1>SIMPLE TODO LISTS</h1>
         <h3>FROM RUBY GARAGE</h3>
       </header>
+      <loading :active.sync="isLoading" />
+      <edit-task-modal :editing.sync="editingTaskObj" @update:task="updateTask" />
       <section class="todo_lists" v-if="projects && !addingList">
         <todo-list v-for="(todoList, i) in projectsArr" 
                   v-bind="{
@@ -15,16 +17,16 @@
                     projects: projectsArr
                   }"
                   :key="todoList.id"
+                  @edit:todo="(editingTaskObj = {status: true, task: $event})"
                   @send:batch="sendBatch"
                   @update:priority="updatePriority"
                   @delete="deleteList"
-                  @delete:todo="deleteItem"
-                  @update:todo="updateItem" />
+                  @delete:todo="deleteItem" />
       </section>
 
       <add-list-sec :addingList.sync="addingList" @create:list="createList" />
 
-      <button @click="addingList=true" class="stripe blue_elem" v-show="!addingList">
+      <button @click="addingList=true" class="stripe blue_elem" v-show="!isLoading && !addingList">
         <img class="ico" :src="btnIco" alt="">
         <div class="text">Add TODO List</div>
       </button>
@@ -39,12 +41,15 @@
 <script>
 import TodoList from "./TodoList/TodoList"
 import AddListSec from "./TodoList/AddListSec"
+import EditTaskModal from "./TodoList/EditTaskModal"
 import btnIco from "@/assets/plus_btn.svg"
 import Projects from "@/projects"
+import Loading from 'vue-loading-overlay'
 
 export default {
   methods: {
     onConnect () { 
+      this.isLoading = false
       this.$wsClient.subscribe('/user/queue/projects-with-tasks', (data) => {
         console.log(data.body)
         this.projects = new Projects(JSON.parse(data.body), this.notifyProjects)
@@ -55,7 +60,7 @@ export default {
 
       this.$wsClient.subscribe('/user/queue/task', res => {
         const task = JSON.parse(res.body)
-        this.projects.createTask(task.projectId, task)
+        this.projects.createTask(task)
       })
 
       //Subscribe on 'new project created' event
@@ -80,12 +85,17 @@ export default {
         destination: '/app/project/delete/' + projId
       })
     },
-    updateItem ({id, todo}) {
-      console.log("UpdateItem", id, todo)
-      this.projects.updateTask(id, todo)
+    updateTask (task) {
+      console.log("Update task", task)
+      this.$wsClient.publish({
+        destination: '/app/task/update',
+        body: JSON.stringify(task)
+      });
+      this.editingTaskObj.status = false
+      this.projects.updateTask(task)
     },
-    deleteItem ({projId, task}) {
-      this.projects.deleteTask(projId, task)  
+    deleteItem (task) {
+      this.projects.deleteTask(task)  
     },
     createList (newProject) {
       console.log("create TodoList")
@@ -109,11 +119,8 @@ export default {
       console.log(id)
       const project = this.projects.get(id)
       this.$wsClient.publish({
-        destination: '/app/project/batch',
-        body: JSON.stringify({
-          id: project.id,
-          tasks: Object.values(project.tasks)
-        })
+        destination: '/app/task/batch',
+        body: JSON.stringify(Object.values(project.tasks))
       })
     }
   },
@@ -129,10 +136,18 @@ export default {
       projectsArr: null,
       addingList: false,
       newProject: null,
-      btnIco
+      btnIco,
+      isLoading: true,
+      editingTaskObj: {
+        status: false,
+        task: {
+          name: null,
+          term: null
+        }
+      }
     }
   },
-  components: {TodoList, AddListSec}
+  components: {TodoList, AddListSec, Loading, EditTaskModal}
 }
 </script>
 
