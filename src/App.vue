@@ -6,6 +6,7 @@
         <h3>FROM RUBY GARAGE</h3>
       </header>
       <loading :active.sync="isLoading" />
+      <edit-task-modal :editing.sync="editingTaskObj" @update:task="updateTask" />
       <section class="todo_lists" v-if="projects && !addingList">
         <todo-list v-for="(todoList, i) in projectsArr" 
                   v-bind="{
@@ -16,11 +17,11 @@
                     projects: projectsArr
                   }"
                   :key="todoList.id"
+                  @edit:todo="(editingTaskObj = {status: true, task: $event})"
                   @send:batch="sendBatch"
                   @update:priority="updatePriority"
                   @delete="deleteList"
-                  @delete:todo="deleteItem"
-                  @update:todo="updateItem" />
+                  @delete:todo="deleteItem" />
       </section>
 
       <add-list-sec :addingList.sync="addingList" @create:list="createList" />
@@ -40,6 +41,7 @@
 <script>
 import TodoList from "./TodoList/TodoList"
 import AddListSec from "./TodoList/AddListSec"
+import EditTaskModal from "./TodoList/EditTaskModal"
 import btnIco from "@/assets/plus_btn.svg"
 import Projects from "@/projects"
 import Loading from 'vue-loading-overlay'
@@ -83,9 +85,14 @@ export default {
         destination: '/app/project/delete/' + projId
       })
     },
-    updateItem ({id, todo}) {
-      console.log("UpdateItem", id, todo)
-      this.projects.updateTask(id, todo)
+    updateTask (task) {
+      console.log("Update task", task)
+      this.$wsClient.publish({
+        destination: '/app/task/update',
+        body: JSON.stringify(task)
+      });
+      this.editingTaskObj.status = false
+      this.projects.updateTask(task.projectId, task)
     },
     deleteItem ({projId, task}) {
       this.projects.deleteTask(projId, task)  
@@ -130,10 +137,17 @@ export default {
       addingList: false,
       newProject: null,
       btnIco,
-      isLoading: true
+      isLoading: true,
+      editingTaskObj: {
+        status: false,
+        task: {
+          name: null,
+          term: null
+        }
+      }
     }
   },
-  components: {TodoList, AddListSec, Loading}
+  components: {TodoList, AddListSec, Loading, EditTaskModal}
 }
 </script>
 

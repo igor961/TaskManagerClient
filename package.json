@@ -10,7 +10,9 @@
   "dependencies": {
     "@stomp/stompjs": "^5.4.4",
     "core-js": "^3.6.5",
+    "luxon": "^1.25.0",
     "vue": "^2.6.11",
+    "vue-datetime": "^1.0.0-beta.14",
     "vue-loading-overlay": "^3.4.0",
     "vuelidate": "^0.7.5"
   },

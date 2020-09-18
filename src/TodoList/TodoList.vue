@@ -1,5 +1,5 @@
 <template>
-  <section class="todo_list">
+  <section class="window todo_list">
     <header class="stripe blue_elem">
       <img :src="ico" class="ico" alt="" />
       <div class="s10px"></div>
@@ -19,6 +19,7 @@
       <AddSec @create="createItem" />
       <div class="view_sec">
         <TodoListItem v-for="(v, i) in projects[pos].tasks" 
+                      @edit:todo="$emit('edit:todo', $event)"
                       @update:todo="updateItem"
                       @delete:todo="deleteItem"
                       @update:priority="$emit('update:priority', $event) && (batchReady = true)"
@@ -126,6 +127,12 @@ export default {
   width: 100%;
 }
 
+.window {
+  background: white;
+  border-radius: 0 0 20px 20px;
+  border: 1px solid #a8a8a8;
+}
+
 .todo_list {
   width: 1000px;
   margin-bottom: 50px;
@@ -136,7 +143,7 @@ export default {
   position: relative;
 }
 
-.todo_list>header>.ico {
+.window>header>.ico {
   opacity: 0.4;
 }
 
@@ -179,6 +186,10 @@ export default {
   visibility: visible;
 }
 
+.stripe:hover .badge {
+  visibility: hidden;
+}
+
 .stripe:hover:last-child {
   border-radius: 0 0 20px 20px;
 } 
@@ -200,7 +211,6 @@ export default {
 
 .s1px {
   width: 1px;
-  margin: 3px 0;
   background: #e7ebea;
   align-self: stretch;
 }
