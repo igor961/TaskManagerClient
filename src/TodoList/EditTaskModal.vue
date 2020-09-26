@@ -16,7 +16,7 @@
             <datetime v-model="$v.newTask.term.$model" 
                       type="datetime" 
                       :min-datetime="new Date().toISOString()" />
-            <button type="button" style="position: absolute;" @click="($v.newTask.term.$model = null)">Clear</button>
+            <button type="button" style="position: absolute;" @click="((newTask.term)?($v.newTask.term = null):null)">Clear</button>
           </div>
         </div>
         <div class="form-row">
@@ -45,6 +45,7 @@ export default {
   watch: {
     editing (newVal) {
       this.newTask = {...newVal.task}
+      this.$v.$reset()
     }
   },
   validations: {
@@ -72,12 +73,10 @@ export default {
         setTimeout(() => this.errorSubmitting = false, 5000)
       } else {
         this.$emit('update:task', this.newTask)
-        this.$v.$reset()
       }
     },
     cancel () {
       this.$emit('update:editing', {...this.editing, status: false})
-      this.$v.$reset()
     }
   },
   components: {
