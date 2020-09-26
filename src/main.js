@@ -8,7 +8,7 @@ Vue.config.productionTip = false
 Vue.use(Vuelidate)
 
 //Vue.use(WSPlugin("ws://taskmanagerws.herokuapp.com/api"))
-Vue.use(WSPlugin("ws://localhost:8080/api"))
+Vue.use(WSPlugin(process.env.VUE_APP_WSS_URL || "ws://localhost:8080/api"))
 
 new Vue({
   render: h => h(App),
