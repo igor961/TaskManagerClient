@@ -21,7 +21,7 @@ export default {
   },
   computed: {
     termStr () {
-      return DateTime.fromISO(this.term).toFormat('dd/mm/yyyy HH:mm')
+      return DateTime.fromISO(this.term).toFormat('dd/MM/yyyy HH:mm')
     }
   }
 }
