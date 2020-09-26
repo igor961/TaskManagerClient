@@ -4,10 +4,11 @@
       <img :src="ico" class="ico" alt="" />
       <div class="s10px"></div>
       <div class="text" 
-           style="padding: 0;" 
-           :contenteditable="editingTitle"           
+           style="padding: 0;"
+           :contenteditable="editingTitle"
            @keydown.enter.prevent="setNewTitle($event.target.innerText)"
-           @keyup.enter="updateTitle">
+           @keyup.enter="updateTitle"
+           ref="title">
         {{title}}
       </div>
       <span class="cap" v-if="editingTitle && $v.newTitle.$invalid">(New title must not be empty or larger than 64 symbols)</span>
@@ -87,6 +88,7 @@ export default {
     editTitle () {
       this.newTitle = this.title
       this.editingTitle = true
+      this.$nextTick(() => this.$refs.title.focus())
     }
   },
   data () {
