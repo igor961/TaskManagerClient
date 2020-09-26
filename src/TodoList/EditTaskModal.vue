@@ -16,7 +16,7 @@
             <datetime v-model="$v.newTask.term.$model" 
                       type="datetime" 
                       :min-datetime="new Date().toISOString()" />
-            <button type="button" style="position: absolute;" @click="(newTask.term = null)">Clear</button>
+            <button type="button" style="position: absolute;" @click="($v.newTask.term.$model = null)">Clear</button>
           </div>
         </div>
         <div class="form-row">
@@ -24,7 +24,7 @@
         </div>
         <div class="form-row footer-row">
           <button type="submit" :disabled="!$v.$anyDirty">Submit</button>
-          <button type="button" @click="$emit('update:editing', {...editing, status: false})" class="cancel-btn">Cancel</button>
+          <button type="button" @click="cancel" class="cancel-btn">Cancel</button>
         </div>
       </form>
     </article>
@@ -74,6 +74,10 @@ export default {
         this.$emit('update:task', this.newTask)
         this.$v.$reset()
       }
+    },
+    cancel () {
+      this.$emit('update:editing', {...this.editing, status: false})
+      this.$v.$reset()
     }
   },
   components: {
